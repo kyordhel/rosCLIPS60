@@ -144,6 +144,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node
   src/utils.cpp
+  src/clips_bridge.cpp
   src/dummy_func.cpp
   src/main.cpp
 )

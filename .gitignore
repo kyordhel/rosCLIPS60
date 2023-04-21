@@ -4,6 +4,8 @@
 !.gitignore
 !.gitattributes
 !CMakeLists.txt
+!LICENSE
+!reamde.MD
 !package.xml
 # And these subdirectories
 !src/

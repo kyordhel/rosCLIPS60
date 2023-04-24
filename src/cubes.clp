@@ -51,6 +51,8 @@
 
           (bind ?transmitter (CONDOR_open_network_conection ?address ?port_out 512 "w"))
           (bind ?message (str-cat "Stablish conection with " ?system))
+          (rospub "clips_out" "Hello clips_out")
+          (rospub "clips_out2" "Hello clips_out2")
           (assert (transmitter ?system ?transmitter))
 )
 
@@ -61,9 +63,11 @@
            (transmitter BLACKBOARD ?transmitter-id)
         =>
           (retract ?fact1)
-          (bind ?command1 (str-cat  ?destination " \""  ?arguments "\" @" ?id ))
-          (bind ?status (CONDOR_send_data_client_network ?transmitter-id ?command1))
-          (printout t "send command " ?command1 crlf)
+          ; (bind ?command1 (str-cat  ?destination " \""  ?arguments "\" @" ?id ))
+          ; (bind ?status (CONDOR_send_data_client_network ?transmitter-id ?command1))
+          ; (printout t "send command " ?command1 crlf)
+          (bind ?status (rospub ?destination ?arguments))
+          (printout t "published to " ?destination ": " ?arguments crlf)
 )
 
 

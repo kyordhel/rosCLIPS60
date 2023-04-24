@@ -40,6 +40,7 @@ ClipsBridge::ClipsBridge(){
 	flg_rules  = false;
 	flg_trace  = false;
 	num        = 100;
+	nodeHandle = NULL;
 }
 
 
@@ -58,8 +59,14 @@ void ClipsBridge::assertFact(std::string const& s) {
 bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh){
 	if( !parseArgs(argc, argv) ) return false;
 
-	pub = nh.advertise<std_msgs::String>(topic_out, 1000);
-	sub = nh.subscribe(topic_in, 1000, &ClipsBridge::subscriberCallback, this);
+	nodeHandle = &nh;
+	ros::Publisher pub = nh.advertise<std_msgs::String>(topic_out, 100);
+	publishers[topic_out] = pub;
+
+	ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topic_in, 100,
+		boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_in)
+	);
+	subscribers[topic_in] = sub;
 
 	initCLIPS(argc, argv);
 	return true;
@@ -209,9 +216,17 @@ void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "    ./" << pname << " -e virbot.dat -w 1 -r 1 -num 20"  << std::endl;
 }
 
-void ClipsBridge::subscriberCallback(const std_msgs::String::ConstPtr& msg) {
-	ROS_INFO("CLIPS in: [%s]", msg->data.c_str());
-	queue.produce(msg->data);
+
+void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic) {
+	ROS_INFO("CLIPS in: [%s] via %s", msg->data.c_str(), topic.c_str());
+	if (topic == topic_in)
+		queue.produce(msg->data);
+	else if (topic_facts.find("f") != topic_facts.end()){
+		std::string fact = topic_facts[topic];
+		std::stringstream ss;
+		ss << "(" << fact << " " << msg->data.c_str() << ")";
+		AssertString( (char*)ss.str().c_str() );
+	}
 }
 
 
@@ -244,6 +259,44 @@ void ClipsBridge::run(){
 	}
 }
 
+
 void ClipsBridge::runAsync(){
 	asyncThread = std::thread(&ClipsBridge::run, this);
 }
+
+int ClipsBridge::publish(std::string const& message){
+	return publish(topic_out, message);
+}
+
+int ClipsBridge::publish(std::string const& topic_name, std::string const& message){
+	if (publishers.find(topic_name) == publishers.end()){
+		// Topic not in publishers. Insert.
+		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topic_name), 10);
+		publishers[topic_name] = pub;
+		ROS_INFO("Added publisher for topic /%s", topic_name.c_str());
+	}
+	ros::Publisher& pub = publishers[topic_name];
+	std_msgs::String msg;
+	msg.data = message;
+	// ROS_INFO("Published <%s> on /%s", message.c_str(), pub.getTopic().c_str());
+	pub.publish(msg);
+	ros::spinOnce();
+	return 0;
+}
+
+
+int ClipsBridge::subscribe(std::string const& topic_name, std::string const& fact_name){
+	if (subscribers.find(topic_name) == subscribers.end()){
+		// Topic not in subscribers. Insert.
+		// ros::Subscriber sub = nodeHandle->subscribe(topic_name, 10, &ClipsBridge::subscriberCallback, this);
+		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topic_in, 100,
+			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
+		);
+		ROS_INFO("Subscribed to topic /%s", topic_name.c_str());
+		subscribers[topic_name] = sub;
+		topic_facts[topic_name] = fact_name;
+	}
+	return 0;
+}
+
+

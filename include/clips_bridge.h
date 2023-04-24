@@ -4,6 +4,7 @@
 
 #include <thread>
 #include <string>
+#include <unordered_map>
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -36,8 +37,11 @@ private:
 
 	std::string topic_in;
 	std::string topic_out;
-	ros::Publisher pub;
-	ros::Subscriber sub;
+
+	ros::NodeHandle* nodeHandle;
+	std::unordered_map<std::string, ros::Publisher> publishers;
+	std::unordered_map<std::string, ros::Subscriber> subscribers;
+	std::unordered_map<std::string, std::string> topic_facts;
 
 public:
 	ClipsBridge();
@@ -54,7 +58,7 @@ public:
 	void load_dat(std::string const& fpath);
 	void run();
 	void runAsync();
-	void subscriberCallback(std_msgs::String::ConstPtr const& msg);
+	void subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic);
 
 private:
 	void assertFact(std::string const& s);
@@ -63,8 +67,13 @@ private:
 	bool parseArgs(int argc, char **argv);
 	void printDefaultArgs(std::string const& pname);
 	void printHelp(std::string const& pname);
+	int publish(std::string const& message);
+	int publish(std::string const& topic_name, std::string const& message);
+	int subscribe(std::string const& topic_name, std::string const& fact_name);
 
 	friend void send_message(ClipsBridge& br, std::string const& msg);
+	friend int bridge_publish_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& message);
+	friend int bridge_subscribe_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& fact_name);
 };
 
 #endif // __CLIPS_BRIDGE_H__

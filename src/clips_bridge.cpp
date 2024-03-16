@@ -204,12 +204,12 @@ void ClipsBridge::printDefaultArgs(std::string const& pname){
 void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "Usage:" << std::endl;
 	std::cout << "    ./" << pname;
-	std::cout << "-i input topic";
-	std::cout << "-o output topic";
-	std::cout << "-e clips file";
-	std::cout << "-w watch facts";
-	std::cout << "-r watch rules";
-	std::cout << "-num num rules";
+	std::cout << "-i input_topic ";
+	std::cout << "-o output_topic ";
+	std::cout << "-e clips_file ";
+	std::cout << "-w watch_facts ";
+	std::cout << "-r watch_rules ";
+	std::cout << "-num num_rules ";
 	std::cout << "-t trace";
 	std::cout << std::endl << std::endl;
 	std::cout << "Example:" << std::endl;

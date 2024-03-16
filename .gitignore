@@ -5,7 +5,7 @@
 !.gitattributes
 !CMakeLists.txt
 !LICENSE
-!reamde.MD
+!readme.MD
 !package.xml
 # And these subdirectories
 !src/

@@ -113,21 +113,33 @@ catkin_package(
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
+## Build the CLIPS library libclips.so
+add_subdirectory(clips60)
+
+# add_definitions(-w) # disable all warnings
+# # ## Declare a C++ library
+# file(GLOB CLIPS_SRC
+#   ${PROJECT_SOURCE_DIR}/clips60/src/*.c
+# )
+
+# add_library(clips60 ${CLIPS_SRC})
+
+# target_include_directories(clips60
+#   PRIVATE
+#   ${PROJECT_SOURCE_DIR}/clips60/include/clips
+#   # ${catkin_INCLUDE_DIRS}
+# )
+
+
+
+
+# ## Specify additional locations of header files
+# ## Your package locations should be listed before other locations
 include_directories(
-  include/clips
+  include
+  clips60/include
   ${catkin_INCLUDE_DIRS}
 )
-
-add_definitions(-w) # disable all warnings
-message(STATUS, ${PROJECT_SOURCE_DIR})
-## Declare a C++ library
-file(GLOB CLIPS_SRC
-  ${PROJECT_SOURCE_DIR}/src/clips/*.c
-)
-
-add_library(clips ${CLIPS_SRC})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -168,7 +180,7 @@ set_target_properties(${PROJECT_NAME}_node
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
-  clips
+  clips60
   ${catkin_LIBRARIES}
   m
   pthread

@@ -5,9 +5,8 @@
 !.gitattributes
 !CMakeLists.txt
 !LICENSE
-!readme.MD
-!package.xml
-# And these subdirectories
-!clips60/
-!src/
-!include/
+# And these filetypes
+!*.c
+!*.h
+# Even if they are in subdirectories
+!**/

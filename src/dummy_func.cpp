@@ -2,7 +2,7 @@
 #include "ros/ros.h"
 
 extern "C" {
-	#include "clips.h"
+	#include "clips/clips.h"
 	// #include "user_functions.h"
 }
 

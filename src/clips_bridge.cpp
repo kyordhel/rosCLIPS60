@@ -246,10 +246,14 @@ void ClipsBridge::run(){
 		// }
 
 		if (flg_trace == 1){
-			while( queue.empty() ) usleep(20);
+			while( queue.empty() )
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		}
 
-		if( queue.empty() ) continue;
+		if( queue.empty() ){
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+			continue;
+		}
 		SetWatchItem("facts", 1, NULL);
 
 		// For each message in queue

@@ -5,6 +5,7 @@
 !.gitattributes
 !CMakeLists.txt
 !LICENSE
+!readme.MD
 # And these filetypes
 !*.c
 !*.h

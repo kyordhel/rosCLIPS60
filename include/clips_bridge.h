@@ -35,12 +35,13 @@ private:
 	sync_queue<std::string> queue;
 	std::thread asyncThread;
 
-	std::string topic_in;
-	std::string topic_out;
+	std::string topicIn;
+	std::string topicOut;
 
 	ros::NodeHandle* nodeHandle;
 	std::unordered_map<std::string, ros::Publisher> publishers;
 	std::unordered_map<std::string, ros::Subscriber> subscribers;
+	std::unordered_map<std::string, ros::ServiceServer> srvServers;
 	std::unordered_map<std::string, std::string> topic_facts;
 
 public:
@@ -54,15 +55,22 @@ private:
 
 public:
 	bool init(int argc, char **argv, ros::NodeHandle& nh);
-	void load_clp(std::string const& fpath);
-	void load_dat(std::string const& fpath);
+	bool loadFile(std::string const& fpath);
+	bool loadClp(std::string const& fpath);
+	bool loadDat(std::string const& fpath);
 	void run();
 	void runAsync();
 	void subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic);
 
 private:
 	void assertFact(std::string const& s);
+	void sendCommand(std::string const& s);
+	// std::string& eval(std::string const& s); // Unsupported in 6.0
+
 	void initCLIPS(int argc, char **argv);
+	void initPublishers(ros::NodeHandle& nh);
+	void initServices(ros::NodeHandle& nh);
+	void initSubscribers(ros::NodeHandle& nh);
 	void parseMessage(std::string& m);
 	bool parseArgs(int argc, char **argv);
 	void printDefaultArgs(std::string const& pname);
@@ -70,6 +78,10 @@ private:
 	int publish(std::string const& message);
 	int publish(std::string const& topic_name, std::string const& message);
 	int subscribe(std::string const& topic_name, std::string const& fact_name);
+
+	void printFacts();
+	void printRules();
+	void printAgenda();
 
 	friend void send_message(ClipsBridge& br, std::string const& msg);
 	friend int bridge_publish_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& message);

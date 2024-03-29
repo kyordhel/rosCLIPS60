@@ -6,6 +6,8 @@
 
 extern "C" {
 	#include "clips/clips.h"
+	#include "clips/commline.h"
+	#include "clips/prcdrfun.h"
 	// #include "user_functions.h"
 }
 
@@ -20,27 +22,98 @@ extern "C" {
 #define contains(s1,s2) s1.find(s2) != std::string::npos
 
 
+/* ** ********************************************************
+* Local helpers
+* *** *******************************************************/
+static inline
+bool ends_with(const std::string& s, const std::string& end){
+	if (end.size() > s.size()) return false;
+	return std::equal(end.rbegin(), end.rend(), s.rbegin());
+}
+
+static inline
+void split_path(const std::string& fpath, std::string& dir, std::string& fname){
+	size_t slashp = fpath.rfind("/");
+	if(slashp == std::string::npos){
+		dir = std::string();
+		fname = fpath;
+		return;
+	}
+	dir = fpath.substr(0, slashp);
+	fname = fpath.substr(slashp+1);
+}
+
+static inline
+std::string get_current_path(){
+	char buff[FILENAME_MAX];
+	getcwd(buff, sizeof(buff));
+	return std::string(buff);
+}
+
+
 
 
 /* ** ********************************************************
 * Constructor
 * *** *******************************************************/
-ClipsBridge::ClipsBridge(){
+ClipsBridge::ClipsBridge():
+	clips_file("cubes.dat"), topicIn("clips_in"), topicOut("clips_out"),
+	flg_facts(false), flg_rules(false), flg_trace(false),
+	logicalName("stdout"), num(100), nodeHandle(NULL){
+}
 
-	// Default values
-	start = -1;
-	end   = -1;
-	max   = -1;
 
-	topic_in   = "clips_in";
-	topic_out  = "clips_out";
-	// clips_file = "virbot.dat";
-	clips_file = "cubes.dat";
-	flg_facts  = false;
-	flg_rules  = false;
-	flg_trace  = false;
-	num        = 100;
-	nodeHandle = NULL;
+
+/* ** ********************************************************
+*
+* Class methods
+* Initialization
+*
+* *** *******************************************************/
+bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh){
+	if( !parseArgs(argc, argv) ) return false;
+
+	initCLIPS(argc, argv);
+
+	this->nodeHandle = &nh;
+	initSubscribers(nh);
+	initPublishers(nh);
+	initServices(nh);
+
+	return true;
+}
+
+
+void ClipsBridge::initCLIPS(int argc, char **argv){
+
+	InitializeCLIPS();
+	RerouteStdin(argc, argv);
+
+	// Load clp files specified in dat file
+	loadDat(clips_file);
+	Reset();
+
+	logicalName = "stdout";
+	Facts( (char*) logicalName.c_str(), NULL, start, end, max);
+}
+
+
+void ClipsBridge::initPublishers(ros::NodeHandle& nh){
+	ros::Publisher pub = nh.advertise<std_msgs::String>(topicOut, 100);
+	publishers[topicOut] = pub;
+}
+
+
+void ClipsBridge::initSubscribers(ros::NodeHandle& nh){
+	ros::Subscriber
+	sub = nh.subscribe<std_msgs::String>(topicIn, 100,
+		boost::bind(&ClipsBridge::subscriberCallback, this, _1, topicIn)
+	);
+	subscribers[topicIn] = sub;
+}
+
+
+void ClipsBridge::initServices(ros::NodeHandle& nh){
 }
 
 
@@ -56,62 +129,84 @@ void ClipsBridge::assertFact(std::string const& s) {
 }
 
 
-bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh){
-	if( !parseArgs(argc, argv) ) return false;
 
-	nodeHandle = &nh;
-	ros::Publisher pub = nh.advertise<std_msgs::String>(topic_out, 100);
-	publishers[topic_out] = pub;
+void ClipsBridge::sendCommand(std::string const& s){
+	char as[s.length()+1];
+	s.copy(as, s.length());
+	as[s.length()] = 0;
 
-	ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topic_in, 100,
-		boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_in)
-	);
-	subscribers[topic_in] = sub;
+	// Resets the pretty print save buffer.
+	FlushPPBuffer();
+	// Sets PPBufferStatus flag to boolean
+	// value of ON or OFF
+	SetPPBufferStatus(OFF);
+	// Processes a completed command
+	RouteCommand(as);
+	// Returns the EvaluationError flag
+	int res = GetEvaluationError();
+	// Resets the pretty print save buffer.
+	FlushPPBuffer();
+	// Sets the HaltExecution flag
+	SetHaltExecution(FALSE);
+	// Sets the EvaluationError flag
+	SetEvaluationError(FALSE);
+	// Removes all variables from the list
+	// of currently bound local variables.
+	FlushBindList();
+}
 
-	initCLIPS(argc, argv);
+
+bool ClipsBridge::loadClp(const std::string& fpath){
+	char afpath[fpath.length()+1];
+	fpath.copy(afpath, fpath.length());
+	afpath[fpath.length()] = 0;
+	ROS_INFO("Loading file '%s'...", afpath );
+	int flag = Load( (char*) afpath );
+	if(flag <= 0){
+		ROS_ERROR("Error in file '%s' or does not exist", fpath.c_str());
+		return false;
+	}
+	ROS_INFO("File %s loaded successfully", fpath.c_str());
 	return true;
 }
 
 
-void ClipsBridge::initCLIPS(int argc, char **argv){
-
-	InitializeCLIPS();
-	RerouteStdin(argc, argv);
-
-	// Load clp files specified in dat file
-	load_dat(clips_file);
-	Reset();
-
-	logicalName = "stdout";
-	Facts( (char*) logicalName.c_str(), NULL, start, end, max);
-}
-
-
-void ClipsBridge::load_clp(const std::string& fpath){
-	ROS_INFO("Loading file '%s'...", fpath.c_str() );
-	int flag = Load( (char*) fpath.c_str() );
-	if(flag <= 0){
-		ROS_ERROR("Error in file '%s' or does not exist  %d", fpath.c_str());
-		exit(0);
-	}
-	ROS_INFO("File %s loaded successfully", fpath.c_str());
-}
-
-
-void ClipsBridge::load_dat(const std::string& fpath){
+bool ClipsBridge::loadDat(const std::string& fpath){
+	if( fpath.empty() ) return false;
 	std::ifstream fs;
 	fs.open(fpath);
 
 	if( fs.fail() || !fs.is_open() ){
-		ROS_ERROR("File '%s' does not exists", fpath);
-		exit(0);
+		ROS_ERROR("File '%s' does not exists", fpath.c_str());
+		return false;
 	}
 
-	std::string line;
-	while( std::getline(fs, line) )
-		if ( !line.empty() ) load_clp(line);
-
+	bool err = false;
+	std::string line, fdir, fname;
+	std::string here = get_current_path();
+	split_path(fpath, fdir, fname);
+	if(!fdir.empty()) chdir(fdir.c_str());
+	ROS_INFO("Loading '%s'...", fname.c_str());
+	while(!err && std::getline(fs, line) ){
+		if(line.empty()) continue;
+		// size_t slashp = fpath.rfind("/");
+		// if(slashp != std::string::npos) line = fdir + line;
+		if (!loadClp(line)) err = true;
+	}
 	fs.close();
+	chdir(here.c_str());
+	ROS_INFO(err? "Aborted." : "Done.");
+
+	return !err;
+}
+
+
+bool ClipsBridge::loadFile(std::string const& fpath){
+	if(ends_with(fpath, ".dat"))
+		return loadDat(fpath);
+	else if(ends_with(fpath, ".clp"))
+		return loadClp(fpath);
+	return false;
 }
 
 
@@ -138,7 +233,7 @@ void ClipsBridge::parseMessage(std::string& m){
 	}
 	else if( !strcmp(m.c_str(), "RESET") ){
 		Clear();
-		load_dat(clips_file);
+		loadDat(clips_file);
 		Reset();
 	}
 	else{
@@ -175,10 +270,10 @@ bool ClipsBridge::parseArgs(int argc, char **argv){
 			num = atoi(argv[i+1]);
 		}
 		else if (!strcmp(argv[i],"-i")){
-			topic_in = std::string(argv[i+1]);
+			topicIn = std::string(argv[i+1]);
 		}
 		else if (!strcmp(argv[i],"-o")){
-			topic_out = std::string(argv[i+1]);
+			topicOut = std::string(argv[i+1]);
 		}
 	}
 	return true;
@@ -189,8 +284,8 @@ bool ClipsBridge::parseArgs(int argc, char **argv){
 void ClipsBridge::printDefaultArgs(std::string const& pname){
 	std::cout << "Using default parameters:" << std::endl;
 	std::cout << "    "   << pname;
-	std::cout << " -i "   << topic_in;
-	std::cout << " -o "   << topic_out;
+	std::cout << " -i "   << topicIn;
+	std::cout << " -o "   << topicOut;
 	std::cout << " -e "   << clips_file;
 	std::cout << " -w "   << flg_facts;
 	std::cout << " -r "   << flg_rules;
@@ -219,7 +314,7 @@ void ClipsBridge::printHelp(std::string const& pname){
 
 void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic) {
 	ROS_INFO("CLIPS in: [%s] via %s", msg->data.c_str(), topic.c_str());
-	if (topic == topic_in)
+	if (topic == topicIn)
 		queue.produce(msg->data);
 	else if (topic_facts.find("f") != topic_facts.end()){
 		std::string fact = topic_facts[topic];
@@ -269,7 +364,7 @@ void ClipsBridge::runAsync(){
 }
 
 int ClipsBridge::publish(std::string const& message){
-	return publish(topic_out, message);
+	return publish(topicOut, message);
 }
 
 int ClipsBridge::publish(std::string const& topic_name, std::string const& message){
@@ -293,7 +388,7 @@ int ClipsBridge::subscribe(std::string const& topic_name, std::string const& fac
 	if (subscribers.find(topic_name) == subscribers.end()){
 		// Topic not in subscribers. Insert.
 		// ros::Subscriber sub = nodeHandle->subscribe(topic_name, 10, &ClipsBridge::subscriberCallback, this);
-		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topic_in, 100,
+		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topicIn, 100,
 			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
 		);
 		ROS_INFO("Subscribed to topic /%s", topic_name.c_str());

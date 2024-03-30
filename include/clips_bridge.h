@@ -26,6 +26,7 @@ private:
 
 	// int number;
 	int num;
+	bool running;
 
 	sync_queue<std::string> queue;
 	std::thread asyncThread;
@@ -41,6 +42,7 @@ private:
 
 public:
 	ClipsBridge();
+	~ClipsBridge();
 
 	// Disable copy constructor and assignment op.
 private:
@@ -55,6 +57,7 @@ public:
 	bool loadDat(std::string const& fpath);
 	void run();
 	void runAsync();
+	void stop();
 	void subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic);
 
 private:
@@ -66,7 +69,12 @@ private:
 	void initPublishers(ros::NodeHandle& nh);
 	void initServices(ros::NodeHandle& nh);
 	void initSubscribers(ros::NodeHandle& nh);
-	void parseMessage(std::string& m);
+	void parseMessage(const std::string& m);
+	void handleCommand(const std::string& c);
+	void handleLog(const std::string& arg);
+	void handlePrint(const std::string& arg);
+	void handleRun(const std::string& arg);
+	void handleWatch(const std::string& arg);
 	bool parseArgs(int argc, char **argv);
 	void printDefaultArgs(std::string const& pname);
 	void printHelp(std::string const& pname);

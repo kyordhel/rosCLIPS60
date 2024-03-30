@@ -81,6 +81,8 @@ int main(int argc, char **argv){
 	bridge.runAsync();
 	// Give control to ROS
 	ros::spin();
+	bridge.stop();
+	std::cout << std::endl;
 	return 0;
 }
 

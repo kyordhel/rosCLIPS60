@@ -62,6 +62,9 @@ ClipsBridge::ClipsBridge():
 	num(100), nodeHandle(NULL){
 }
 
+ClipsBridge::~ClipsBridge(){
+	stop();
+}
 
 
 /* ** ********************************************************
@@ -189,6 +192,78 @@ bool ClipsBridge::loadFile(std::string const& fpath){
 }
 
 
+/**
+ * Parses messages from subscribed topics
+ * Re-implements original parse_network_message by Jesús Savage
+ * @param m String contained in the topic message
+ */
+void ClipsBridge::parseMessage(const std::string& m){
+	if((m[0] == 0) && (m.length()>1)){
+		handleCommand(m.substr(1));
+		return;
+	}
+	assertFact( m );
+}
+
+
+static inline
+void splitCommand(const std::string& s, std::string& cmd, std::string& arg){
+	std::string::size_type sp = s.find(" ");
+	if(sp == std::string::npos){
+		cmd = s;
+		arg.clear();
+	}
+	else{
+		cmd = s.substr(0, sp);
+		arg = s.substr(sp+1);
+	}
+}
+
+
+void ClipsBridge::handleCommand(const std::string& c){
+	std::string cmd, arg;
+	splitCommand(c, cmd, arg);
+
+	if(cmd == "reset") { Reset(); }
+	else if(cmd == "raw")   { clips::sendCommand(arg); }
+	else if(cmd == "print") { handlePrint(arg); }
+	else if(cmd == "watch") { handleWatch(arg); }
+	else if(cmd == "load")  { loadFile(arg); Reset(); }
+	else if(cmd == "run")   { handleRun(arg); }
+	else if(cmd == "log")   { handleLog(arg); }
+	else return;
+
+	ROS_INFO("Handled command %s", c.c_str());
+}
+
+
+void ClipsBridge::handleLog(const std::string& arg){
+}
+
+
+void ClipsBridge::handlePrint(const std::string& arg){
+	if(arg == "facts"){       clips::printFacts();  }
+	else if(arg == "rules"){  clips::printRules();  }
+	else if(arg == "agenda"){ clips::printAgenda(); }
+}
+
+
+void ClipsBridge::handleRun(const std::string& arg){
+	int n = std::stoi(arg);
+	Run(n);
+}
+
+
+void ClipsBridge::handleWatch(const std::string& arg){
+	if(arg == "functions"){    clips::toggleWatch(clips::WatchItem::Deffunctions); }
+	else if(arg == "globals"){ clips::toggleWatch(clips::WatchItem::Globals);      }
+	else if(arg == "facts"){   clips::toggleWatch(clips::WatchItem::Facts);        }
+	else if(arg == "rules"){   clips::toggleWatch(clips::WatchItem::Rules);        }
+}
+
+
+
+/*
 void ClipsBridge::parseMessage(std::string& m){
 	if(contains(m, "CONTINUE") )
 		return;
@@ -219,8 +294,144 @@ void ClipsBridge::parseMessage(std::string& m){
 		assertFact( m );
 	}
 }
+*/
 
 
+
+
+/* ** ********************************************************
+*
+* Class methods: ROS-related
+*
+* *** *******************************************************/
+int ClipsBridge::publish(std::string const& message){
+	return publish(topicOut, message);
+}
+
+
+int ClipsBridge::publish(std::string const& topic_name, std::string const& message){
+	if (publishers.find(topic_name) == publishers.end()){
+		// Topic not in publishers. Insert.
+		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topic_name), 10);
+		publishers[topic_name] = pub;
+		ROS_INFO("Added publisher for topic /%s", topic_name.c_str());
+	}
+	ros::Publisher& pub = publishers[topic_name];
+	std_msgs::String msg;
+	msg.data = message;
+	// ROS_INFO("Published <%s> on /%s", message.c_str(), pub.getTopic().c_str());
+	pub.publish(msg);
+	ros::spinOnce();
+	return 0;
+}
+
+
+int ClipsBridge::subscribe(std::string const& topic_name, std::string const& fact_name){
+	if (subscribers.find(topic_name) == subscribers.end()){
+		// Topic not in subscribers. Insert.
+		// ros::Subscriber sub = nodeHandle->subscribe(topic_name, 10, &ClipsBridge::subscriberCallback, this);
+		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topicIn, 100,
+			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
+		);
+		ROS_INFO("Subscribed to topic /%s", topic_name.c_str());
+		subscribers[topic_name] = sub;
+		topic_facts[topic_name] = fact_name;
+	}
+	return 0;
+}
+
+
+/* ** ********************************************************
+*
+* Class methods: Multithreaded execution
+*
+* *** *******************************************************/
+void ClipsBridge::stop(){
+	running = false;
+	if(asyncThread.joinable())
+		asyncThread.join();
+}
+
+void ClipsBridge::runAsync(){
+	asyncThread = std::thread(&ClipsBridge::run, this);
+}
+
+
+void ClipsBridge::run(){
+	if(running) return;
+	running = true;
+	// Loop forever
+	while(running && ros::ok()){
+		while( queue.empty() )
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		parseMessage( queue.consume() );
+	}
+}
+/*
+void ClipsBridge::run(){
+	if(running) return;
+	running = true;
+	// Loop forever
+	while(running && ros::ok()){
+		// SetWatchItem("facts", flg_facts, NULL);
+		if(flg_facts) clips::watch(clips::WatchItem::Facts);
+		else clips::unwatch(clips::WatchItem::Facts);
+
+		// SetWatchItem("rules", flg_rules, NULL);
+		if(flg_rules) clips::watch(clips::WatchItem::Rules);
+		else clips::unwatch(clips::WatchItem::Rules);
+
+
+		Run(num);
+
+		// // it checks if function waitsec finished
+		// if(flag_time == 1){
+		// 	clips::assertString(buffer_time);
+		// 	SetFactListChanged(0);
+		// 	flag_time = 0;
+		// }
+
+		if (flg_trace == 1){
+			while( queue.empty() )
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+
+		if( queue.empty() ){
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+			continue;
+		}
+		// SetWatchItem("facts", 1, NULL);
+		clips::watch(clips::WatchItem::Facts);
+
+		// For each message in queue
+		while( !queue.empty() ){
+			parseMessage( queue.consume() );
+		}
+	}
+}*/
+
+
+/* ** ********************************************************
+*
+* Class methods: Callbacks
+*
+* *** *******************************************************/
+void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic) {
+	ROS_INFO("CLIPS in: [%s] (%lu bytes) via %s", msg->data.c_str(), msg->data.length(), topic.c_str());
+	if (topic == topicIn)
+		queue.produce(msg->data);
+	else if (topic_facts.find("f") != topic_facts.end()){
+		clips::assertString( "(" + topic_facts[topic] + " " + msg->data + ")" );
+	}
+}
+
+
+
+/* ** ********************************************************
+*
+* Class methods: Misc
+*
+* *** *******************************************************/
 bool ClipsBridge::parseArgs(int argc, char **argv){
 	// Read input parameters
 	if (argc <= 1) {
@@ -291,90 +502,18 @@ void ClipsBridge::printHelp(std::string const& pname){
 }
 
 
-void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic) {
-	ROS_INFO("CLIPS in: [%s] via %s", msg->data.c_str(), topic.c_str());
-	if (topic == topicIn)
-		queue.produce(msg->data);
-	else if (topic_facts.find("f") != topic_facts.end()){
-		std::string fact = topic_facts[topic];
-		std::stringstream ss;
-		ss << "(" << fact << " " << msg->data.c_str() << ")";
-		AssertString( (char*)ss.str().c_str() );
-	}
-}
 
 
-void ClipsBridge::run(){
-	// Loop forever
-	while(ros::ok()){
-		SetWatchItem("facts", flg_facts, NULL);
-		SetWatchItem("rules", flg_rules, NULL);
-
-		Run(num);
-
-		// // it checks if function waitsec finished
-		// if(flag_time == 1){
-		// 	AssertString(buffer_time);
-		// 	SetFactListChanged(0);
-		// 	flag_time = 0;
-		// }
-
-		if (flg_trace == 1){
-			while( queue.empty() )
-				std::this_thread::sleep_for(std::chrono::milliseconds(20));
-		}
-
-		if( queue.empty() ){
-			std::this_thread::sleep_for(std::chrono::milliseconds(20));
-			continue;
-		}
-		SetWatchItem("facts", 1, NULL);
-
-		// For each message in queue
-		while( !queue.empty() ){
-			parseMessage( queue.consume() );
-		}
-	}
-}
 
 
-void ClipsBridge::runAsync(){
-	asyncThread = std::thread(&ClipsBridge::run, this);
-}
-
-int ClipsBridge::publish(std::string const& message){
-	return publish(topicOut, message);
-}
-
-int ClipsBridge::publish(std::string const& topic_name, std::string const& message){
-	if (publishers.find(topic_name) == publishers.end()){
-		// Topic not in publishers. Insert.
-		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topic_name), 10);
-		publishers[topic_name] = pub;
-		ROS_INFO("Added publisher for topic /%s", topic_name.c_str());
-	}
-	ros::Publisher& pub = publishers[topic_name];
-	std_msgs::String msg;
-	msg.data = message;
-	// ROS_INFO("Published <%s> on /%s", message.c_str(), pub.getTopic().c_str());
-	pub.publish(msg);
-	ros::spinOnce();
-	return 0;
-}
 
 
-int ClipsBridge::subscribe(std::string const& topic_name, std::string const& fact_name){
-	if (subscribers.find(topic_name) == subscribers.end()){
-		// Topic not in subscribers. Insert.
-		// ros::Subscriber sub = nodeHandle->subscribe(topic_name, 10, &ClipsBridge::subscriberCallback, this);
-		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topicIn, 100,
-			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
-		);
-		ROS_INFO("Subscribed to topic /%s", topic_name.c_str());
-		subscribers[topic_name] = sub;
-		topic_facts[topic_name] = fact_name;
-	}
-	return 0;
-}
+
+
+
+
+
+
+
 
 

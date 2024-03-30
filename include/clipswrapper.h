@@ -30,7 +30,7 @@ enum class WatchItem : int{
 	MessageHandlers  = 0x0800,
 	GenericFunctions = 0x1000,
 	Methods          = 0x2000,
-	All              = 0xffff
+	All              = 0x3fff
 };
 
 enum class ArgCountRestriction : char{
@@ -57,9 +57,52 @@ std::vector<std::string> getDefruleList(std::string const& module="");
 
 int load(std::string const& fpath);
 bool sendCommand(std::string const& s);
+
+/**
+ * Activates the tracing of the specified item(s)
+ * @param  item The item(s) to activate the watch on
+ * @return      True if tracing on the specified watch item was
+ *              sucessfully set, false otherwise. When several
+ *              items are ORed, returns true only if ALL watches
+ *              were set.
+ */
 bool watch(const WatchItem& item);
+
+
+/**
+ * Deactivates the tracing of the specified item(s)
+ * @param  item The item(s) to deactivate the watch on
+ * @return      True if tracing on the specified watch item was
+ *              sucessfully cleared, false otherwise. When several
+ *              items are ORed, returns true only if ALL watches
+ *              were cleared.
+ */
 bool unwatch(const WatchItem& item);
+
+/**
+ * Toggles the tracing of the specified item(s)
+ * @param  item The item(s) wose tracing will be toggled
+ * @return      An ORed WatchItem containing the watch status of all
+ *              the requested items after the toggle opperation.
+ */
 WatchItem toggleWatch(const WatchItem& item);
+
+/**
+ * Toggles the tracing status of the specified item(s)
+ * @param  item The items being traced (watched).
+ * @return      An ORed WatchItem containing the watch status of all
+ *              the items being traced (watched).
+ */
+WatchItem getWatches();
+
+/**
+ * Gets a value indicating whether the specified item is being watched
+ * @param  item The item to be queried.
+ * @return      True if the specified item is being traced (watched),
+ *              false otherwise. When several items are queried returns
+ *              true only if ALL items are being traced (watched).
+ */
+bool watching(const WatchItem& item);
 
 
 bool argCountCheck(

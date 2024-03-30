@@ -209,6 +209,22 @@ WatchItem toggleWatch(const WatchItem& item){
 }
 
 
+WatchItem getWatches(){
+	int result = 0;
+	for(const auto& kv : watchItems){
+		char* iname = (char*)kv.second.c_str();
+		if( GetWatchItem(iname) == 1 )
+			result|= (int)kv.first;
+	}
+	return (WatchItem)result;
+}
+
+inline
+bool watching(const WatchItem& item){
+	return (int)getWatches() & (int)item;
+}
+
+
 bool argCountCheck(const std::string& functionName, const ArgCountRestriction& restriction, int count){
 	char* fn = toNullTermStr(functionName);
 	bool result = ArgCountCheck(fn, (int)restriction, count);

@@ -9,5 +9,6 @@
 !package.xml
 # And these subdirectories
 !clips60/
+!clipscontrol/
 !src/
 !include/

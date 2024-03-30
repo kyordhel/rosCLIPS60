@@ -304,12 +304,12 @@ void ClipsBridge::parseMessage(std::string& m){
 * Class methods: ROS-related
 *
 * *** *******************************************************/
-int ClipsBridge::publish(std::string const& message){
+bool ClipsBridge::publish(std::string const& message){
 	return publish(topicOut, message);
 }
 
 
-int ClipsBridge::publish(std::string const& topic_name, std::string const& message){
+bool ClipsBridge::publish(std::string const& topic_name, std::string const& message){
 	if (publishers.find(topic_name) == publishers.end()){
 		// Topic not in publishers. Insert.
 		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topic_name), 10);
@@ -322,11 +322,11 @@ int ClipsBridge::publish(std::string const& topic_name, std::string const& messa
 	// ROS_INFO("Published <%s> on /%s", message.c_str(), pub.getTopic().c_str());
 	pub.publish(msg);
 	ros::spinOnce();
-	return 0;
+	return true;
 }
 
 
-int ClipsBridge::subscribe(std::string const& topic_name, std::string const& fact_name){
+bool ClipsBridge::subscribe(std::string const& topic_name, std::string const& fact_name){
 	if (subscribers.find(topic_name) == subscribers.end()){
 		// Topic not in subscribers. Insert.
 		// ros::Subscriber sub = nodeHandle->subscribe(topic_name, 10, &ClipsBridge::subscriberCallback, this);
@@ -337,7 +337,7 @@ int ClipsBridge::subscribe(std::string const& topic_name, std::string const& fac
 		subscribers[topic_name] = sub;
 		topic_facts[topic_name] = fact_name;
 	}
-	return 0;
+	return true;
 }
 
 

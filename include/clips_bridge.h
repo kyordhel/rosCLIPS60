@@ -78,9 +78,9 @@ private:
 	bool parseArgs(int argc, char **argv);
 	void printDefaultArgs(std::string const& pname);
 	void printHelp(std::string const& pname);
-	int publish(std::string const& message);
-	int publish(std::string const& topic_name, std::string const& message);
-	int subscribe(std::string const& topic_name, std::string const& fact_name);
+	bool publish(std::string const& message);
+	bool publish(std::string const& topic_name, std::string const& message);
+	bool subscribe(std::string const& topic_name, std::string const& fact_name);
 
 	void printFacts();
 	void printRules();

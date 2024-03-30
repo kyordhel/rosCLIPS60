@@ -362,8 +362,10 @@ void ClipsBridge::run(){
 	running = true;
 	// Loop forever
 	while(running && ros::ok()){
-		while( queue.empty() )
+		if( queue.empty() ){
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+			continue;
+		}
 		parseMessage( queue.consume() );
 	}
 }

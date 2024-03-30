@@ -2,6 +2,7 @@
 #define __CLIPSWRAPPER_H__
 #include <cstdio>
 #include <string>
+#include <vector>
 // #include <>
 //
 
@@ -50,6 +51,8 @@ void printAgenda(
 	const std::string& logicalName="stdout",
 	const std::string& module="");
 
+std::vector<std::string> getDefruleList(std::string const& module="");
+
 
 
 int load(std::string const& fpath);
@@ -57,6 +60,7 @@ bool sendCommand(std::string const& s);
 bool watch(const WatchItem& item);
 bool unwatch(const WatchItem& item);
 WatchItem toggleWatch(const WatchItem& item);
+
 
 bool argCountCheck(
 	const std::string& functionName,

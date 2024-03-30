@@ -26,6 +26,7 @@ std::map<WatchItem,std::string> watchItems = {
 	{WatchItem::Methods,          "methods"},
 };
 
+
 static inline
 char* toNullTermStr(std::string const& str){
 	char *nts = new char[str.length()+1];
@@ -33,6 +34,7 @@ char* toNullTermStr(std::string const& str){
 	nts[str.length()] = 0;
 	return nts;
 }
+
 
 bool isValidClipsString(std::string const& str){
 	if((str.length() < 1) || (str[0] != '('))
@@ -51,11 +53,13 @@ bool isValidClipsString(std::string const& str){
 	return stack.empty() && (str[i] == ')');
 }
 
+
 void assertString(const std::string& s){
 	char* as = toNullTermStr(s);
 	AssertString( as );
 	delete as;
 }
+
 
 void printAgenda(
 	const std::string& logicalName,
@@ -64,6 +68,7 @@ void printAgenda(
 	char* ptrModule = (module.length() > 0) ? (char*) module.c_str() : NULL;
 	Agenda(ptrLN, ptrModule);
 }
+
 
 void printFacts(
 	const std::string& logicalName,
@@ -74,6 +79,7 @@ void printFacts(
 	Facts(ptrLN, ptrModule, start, end, max);
 }
 
+
 void printRules(
 	const std::string& logicalName,
 	const std::string& module){
@@ -81,6 +87,27 @@ void printRules(
 	char* ptrModule = (module.length() > 0) ? (char*) module.c_str() : NULL;
 	ListDefrules(ptrLN, ptrModule);
 }
+
+
+std::vector<std::string> getDefruleList(std::string const& module){
+	DATA_OBJECT obj;
+	struct multifield* theList;
+	std::vector<std::string> rules;
+
+	char* ptrModule = (module.length() > 0) ? (char*) module.c_str() : NULL;
+
+	GetDefruleList(&obj, ptrModule);
+	if( !(theList = (struct multifield *)obj.value) )
+		return rules;
+
+	for(int i = 1; theList && i <= obj.end; ++i) {
+		if(GetMFType(theList, i) != SYMBOL) continue;
+		SYMBOL_HN* value = (SYMBOL_HN*)GetMFValue(theList, i);
+		rules.push_back((char*)(value->contents));
+	}
+	return rules;
+}
+
 
 int load(std::string const& fpath){
 	char afpath[fpath.length()+1];

@@ -17,7 +17,6 @@ private:
 	// char buf[10];
 	// char dummy[30];
 	std::string clips_file;
-	std::string logicalName;
 	// VOID *vTheModule;
 	// int show_facts;
 
@@ -25,12 +24,8 @@ private:
 	bool flg_facts;
 	bool flg_trace;
 
-	int num;
 	// int number;
-
-	long start;
-	long end;
-	long max;
+	int num;
 
 	sync_queue<std::string> queue;
 	std::thread asyncThread;

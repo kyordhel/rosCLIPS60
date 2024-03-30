@@ -6,12 +6,11 @@
 
 extern "C" {
 	#include "clips/clips.h"
-	#include "clips/commline.h"
-	#include "clips/prcdrfun.h"
 	// #include "user_functions.h"
 }
 
 #include "utils.h"
+#include "clipswrapper.h"
 // #include "dummy_func.h"
 
 
@@ -57,9 +56,10 @@ std::string get_current_path(){
 * Constructor
 * *** *******************************************************/
 ClipsBridge::ClipsBridge():
-	clips_file("cubes.dat"), topicIn("clips_in"), topicOut("clips_out"),
+	// clips_file("cubes.dat"),
+	topicIn("clips_in"), topicOut("clips_out"),
 	flg_facts(false), flg_rules(false), flg_trace(false),
-	logicalName("stdout"), num(100), nodeHandle(NULL){
+	num(100), nodeHandle(NULL){
 }
 
 
@@ -85,22 +85,25 @@ bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh){
 
 
 void ClipsBridge::initCLIPS(int argc, char **argv){
-
 	InitializeCLIPS();
 	RerouteStdin(argc, argv);
+	std::cout << "Clips ready" << std::endl;
 
 	// Load clp files specified in dat file
 	loadDat(clips_file);
 	Reset();
 
-	logicalName = "stdout";
-	Facts( (char*) logicalName.c_str(), NULL, start, end, max);
+	clips::printFacts();
 }
 
 
 void ClipsBridge::initPublishers(ros::NodeHandle& nh){
 	ros::Publisher pub = nh.advertise<std_msgs::String>(topicOut, 100);
 	publishers[topicOut] = pub;
+}
+
+
+void ClipsBridge::initServices(ros::NodeHandle& nh){
 }
 
 
@@ -113,46 +116,22 @@ void ClipsBridge::initSubscribers(ros::NodeHandle& nh){
 }
 
 
-void ClipsBridge::initServices(ros::NodeHandle& nh){
-}
-
-
 
 /* ** ********************************************************
-* Class methods
+*
+* Class methods: Clips wrappers
+*
 * *** *******************************************************/
 void ClipsBridge::assertFact(std::string const& s) {
-	std::stringstream ss;
-	ss << "(network " << s << ")";
-	AssertString( (char*)ss.str().c_str() );
+	std::string as = "(network " + s + ")";
+	clips::assertString( "(network " + s + ")" );
 	SetFactListChanged(0);
+	ROS_INFO("Asserted string %s", as.c_str());
 }
-
 
 
 void ClipsBridge::sendCommand(std::string const& s){
-	char as[s.length()+1];
-	s.copy(as, s.length());
-	as[s.length()] = 0;
-
-	// Resets the pretty print save buffer.
-	FlushPPBuffer();
-	// Sets PPBufferStatus flag to boolean
-	// value of ON or OFF
-	SetPPBufferStatus(OFF);
-	// Processes a completed command
-	RouteCommand(as);
-	// Returns the EvaluationError flag
-	int res = GetEvaluationError();
-	// Resets the pretty print save buffer.
-	FlushPPBuffer();
-	// Sets the HaltExecution flag
-	SetHaltExecution(FALSE);
-	// Sets the EvaluationError flag
-	SetEvaluationError(FALSE);
-	// Removes all variables from the list
-	// of currently bound local variables.
-	FlushBindList();
+	clips::sendCommand(s);
 }
 
 
@@ -214,7 +193,7 @@ void ClipsBridge::parseMessage(std::string& m){
 	if(contains(m, "CONTINUE") )
 		return;
 	else if(contains(m, "FACTS") ){
-		Facts((char*) logicalName.c_str(), NULL, start, end, max);
+		clips::facts();
 		flg_facts = 1;
 	}
 	else if( contains(m, "RULES") )

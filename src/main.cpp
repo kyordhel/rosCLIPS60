@@ -39,6 +39,7 @@ extern "C" {
 
 #include "dummy_func.h"
 #include "clips_bridge.h"
+#include "clipswrapper.h"
 
 
 /* ** ********************************************************
@@ -91,20 +92,22 @@ VOID UserFunctions(){
 	// int DefineFunction(functionName, functionType, functionPointer, actualFunctionName);
 	// char *functionName, functionType, *actualFunctionName;
 	// int (*functionPointer)();
-	DefineFunction("CONDOR_open_network_conection", 'i',
-		CONDOR_open_network_conection, "CONDOR_open_network_conection");
-	DefineFunction("CONDOR_send_data_client_network", 'i',
-		CONDOR_send_data_client_network, "CONDOR_send_data_client_network");
+	clips::defineFunction("CONDOR_open_network_conection", 'i',
+		CONDOR_open_network_conection);
+	clips::defineFunction("CONDOR_send_data_client_network", 'i',
+		CONDOR_send_data_client_network);
 
 	// (rospub ?topic ?str)
-	DefineFunction("rospub", 'i', CLIPS_rospub_wrapper, "CLIPS_rospub_wrapper");
+	// DefineFunction("rospub", 'i', CLIPS_rospub_wrapper, "CLIPS_rospub_wrapper");
+	clips::defineFunction("rospub", 'i', CLIPS_rospub_wrapper);
 	// (rossub ?topic ?fact)
-	DefineFunction("rossub", 'i', CLIPS_rossub_wrapper, "CLIPS_rossub_wrapper");
+	// DefineFunction("rossub", 'i', CLIPS_rossub_wrapper, "CLIPS_rossub_wrapper");
+	clips::defineFunction("rossub", 'i', CLIPS_rossub_wrapper);
 }
 
 int CONDOR_send_data_client_network(){
 	/* check for exactly two arguments */
-	if(ArgCountCheck("CONDOR_send_data_client_network", EXACTLY, 2) == -1)
+	if(clips::argCountCheck("CONDOR_send_data_client_network", clips::ArgCountRestriction::Exactly, 2) == -1)
 		return -1;
 
 	/* get the values for the 1st, 2rd arguments */
@@ -128,7 +131,7 @@ void send_message(ClipsBridge& br, std::string const& s){
  */
 int CLIPS_rospub_wrapper(){
 	// (rospub ?topic ?str)
-	if(ArgCountCheck("rospub", EXACTLY, 2) == -1)
+	if(clips::argCountCheck("rospub", clips::ArgCountRestriction::Exactly, 2) == -1)
 		return -1;
 
 	/* Get the values for the 1st, 2rd arguments */
@@ -153,7 +156,7 @@ int bridge_publish_invoker(ClipsBridge& br, std::string const& topic_name, std::
 int CLIPS_rossub_wrapper(){
 	// (rossub ?topic ?fact)
 	// (assert (?fact ?str))
-	if(ArgCountCheck("rossub", EXACTLY, 2) == -1)
+	if(clips::argCountCheck("rossub", clips::ArgCountRestriction::Exactly, 2) == -1)
 		return -1;
 
 	/* Get the values for the 1st, 2rd arguments */

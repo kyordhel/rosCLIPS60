@@ -14,9 +14,9 @@ void ctrlc_handler(int signum) {}
 ** ** ****************************************************************/
 NCursesWin::NCursesWin() :
 	top(NULL), mid(NULL), bottom(NULL),
-	currMod(KPMode::Default)
+	currMod(KPMode::Default), inputAction(InputAction::None)
 {
-
+	cmdstrbase.push_back((char)0);
 	inputPrompt.reserve(25);
 	inputBuffer.reserve(255);
 	signal(SIGINT, ctrlc_handler);
@@ -140,10 +140,12 @@ void NCursesWin::handleKeyDefault(const uint32_t& c, bool& exit){
 			break;
 
 		case KEY_F(7):
+			inputAction = InputAction::Run;
 			shiftToInputMode("Run: ", true);
 			break;
 
 		case ctrl('C'): case 'C': case 'c':
+			inputAction = InputAction::RawCmd;
 			shiftToInputMode("Command: ");
 			break;
 
@@ -152,6 +154,7 @@ void NCursesWin::handleKeyDefault(const uint32_t& c, bool& exit){
 			break;
 
 		case ctrl('O'):
+			inputAction = InputAction::Load;
 			shiftToInputMode("File to load: ");
 			break;
 
@@ -238,66 +241,42 @@ void NCursesWin::handleInputBS(){
 
 
 void NCursesWin::handleInputNL(){
+	switch(inputAction){
+		case InputAction::Load:
+			sendLoad(inputBuffer);
+			break;
+		case InputAction::RawCmd:
+			sendCommand(inputBuffer);
+			break;
+		case InputAction::Run:
+			sendRun(std::stoi(inputBuffer));
+			break;
+	}
+	inputAction = InputAction::None;
 	shiftToDefaultMode();
 }
 
 
-void NCursesWin::updateTop(const std::string& mid){
-	int rows, cols;
-	getmaxyx(stdscr, rows, cols);
-
-	int lpad = (cols - mid.length())/2;
-	int rpad = cols - lpad - mid.length();
-
-	wattron(top, A_REVERSE);
-	mvwprintw(top, 0, 0, "%*s%s%*s",
-		lpad, "",
-		mid.c_str(),
-		rpad, ""
-	);
-	wattroff(top, A_REVERSE);
-	updateWatches();
-	wrefresh(top);
-}
-
-
-void NCursesWin::updateWatch(size_t col, size_t colw, const std::string& wname, const WatchColor& color){
-	std::string pwname;
-
-	if( colw < wname.length() )
-		pwname = wname.substr(0, colw);
-	else if( colw < (wname.length()+6) )
-		pwname = "W. " + wname;
-	else
-		pwname = "Watch " + wname;
-	if( colw > (wname.length() + 6) ){
-		if(color == WatchColor::Unknown)  pwname += " (?)";
-		if(color == WatchColor::Enabled)  pwname += " (on)";
-		if(color == WatchColor::Disabled) pwname += " (off)";
+void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
+	int col = 0, row = 1, kpad, lpad, width;
+	for(auto&& tuple: options){
+		std::string key, label;
+		std::tie(key, label) = tuple;
+		wattron(bottom, A_REVERSE);
+		kpad = col ? 2 - key.length() : 0;
+		mvwprintw(bottom, row, 19*col+kpad, "%s", key.c_str() );
+		wattroff(bottom, A_REVERSE);
+		lpad = 19*col + 3;
+		mvwprintw(bottom, row, lpad, "%s", label.c_str() );
+		if(++row > 3){ row = 1; ++col; }
 	}
-
-	int lpad = (colw - pwname.length())/2;
-	int rpad = colw - lpad - pwname.length();
-	wattron(top, (int16_t)COLOR_PAIR(color));
-	mvwprintw(top, 1, col*colw, "%*s%s%*s",
-		lpad, "",
-		pwname.c_str(),
-		rpad, ""
-	);
-	wattroff(top, (int16_t)COLOR_PAIR(color));
 }
 
 
-void NCursesWin::updateWatches(){
-	int rows, cols;
-	getmaxyx(stdscr, rows, cols);
-	int col = 0;
-	int colw = cols / 4;
-
-	updateWatch(col++, colw, "Functions", WatchColor::Unknown);
-	updateWatch(col++, colw, "Globals", WatchColor::Disabled);
-	updateWatch(col++, colw, "Facts", WatchColor::Enabled);
-	updateWatch(col++, colw, "Rules", WatchColor::Enabled);
+void NCursesWin::publish(const std::string& s){
+	mvwprintw(mid, 2, 0, "Published: %s", s.c_str());
+	wrefresh(mid);
+	for(const auto& f: publishers) f(s);
 }
 
 
@@ -326,6 +305,19 @@ void NCursesWin::resetBottomInput(const std::string& prompt){
 	wrefresh(mid);
 	wrefresh(bottom);
 }
+
+
+void NCursesWin::addPublisher(const pubfunc& f){
+	publishers.push_back(f);
+}
+
+
+// void NCursesWin::removePublisher(const pubfunc& f){
+// 	for(size_t i = 0; i < publishers.size(); ++i){
+// 		if(publishers[i].target() == f.target())
+// 			publishers.erase(publishers.begin() + i--);
+// 	}
+// }
 
 
 void NCursesWin::resetBottomDefault(){
@@ -417,20 +409,64 @@ void NCursesWin::updateBottom(const std::string& title, const std::vector<hotkey
 }
 
 
-void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
-	int col = 0, row = 1, kpad, lpad, width;
-	for(auto&& tuple: options){
-		std::string key, label;
-		std::tie(key, label) = tuple;
-		wattron(bottom, A_REVERSE);
-		kpad = col ? 2 - key.length() : 0;
-		mvwprintw(bottom, row, 19*col+kpad, "%s", key.c_str() );
-		wattroff(bottom, A_REVERSE);
-		lpad = 19*col + 3;
-		mvwprintw(bottom, row, lpad, "%s", label.c_str() );
-		if(++row > 3){ row = 1; ++col; }
-	}
+void NCursesWin::updateTop(const std::string& mid){
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+
+	int lpad = (cols - mid.length())/2;
+	int rpad = cols - lpad - mid.length();
+
+	wattron(top, A_REVERSE);
+	mvwprintw(top, 0, 0, "%*s%s%*s",
+		lpad, "",
+		mid.c_str(),
+		rpad, ""
+	);
+	wattroff(top, A_REVERSE);
+	updateWatches();
+	wrefresh(top);
 }
+
+
+void NCursesWin::updateWatch(size_t col, size_t colw, const std::string& wname, const WatchColor& color){
+	std::string pwname;
+
+	if( colw < wname.length() )
+		pwname = wname.substr(0, colw);
+	else if( colw < (wname.length()+6) )
+		pwname = "W. " + wname;
+	else
+		pwname = "Watch " + wname;
+	if( colw > (wname.length() + 6) ){
+		if(color == WatchColor::Unknown)  pwname += " (?)";
+		if(color == WatchColor::Enabled)  pwname += " (on)";
+		if(color == WatchColor::Disabled) pwname += " (off)";
+	}
+
+	int lpad = (colw - pwname.length())/2;
+	int rpad = colw - lpad - pwname.length();
+	wattron(top, (int16_t)COLOR_PAIR(color));
+	mvwprintw(top, 1, col*colw, "%*s%s%*s",
+		lpad, "",
+		pwname.c_str(),
+		rpad, ""
+	);
+	wattroff(top, (int16_t)COLOR_PAIR(color));
+}
+
+
+void NCursesWin::updateWatches(){
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+	int col = 0;
+	int colw = cols / 4;
+
+	updateWatch(col++, colw, "Functions", WatchColor::Unknown);
+	updateWatch(col++, colw, "Globals", WatchColor::Disabled);
+	updateWatch(col++, colw, "Facts", WatchColor::Enabled);
+	updateWatch(col++, colw, "Rules", WatchColor::Enabled);
+}
+
 
 
 /* ** *****************************************************************
@@ -439,49 +475,61 @@ void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
 *
 ** ** *****************************************************************/
 void NCursesWin::sendCommand(const std::string& cmd){
+	publish(cmdstrbase + "raw " + cmd);
 }
 
 
 void NCursesWin::sendLoad(const std::string& file){
+	publish(cmdstrbase + "load " + file);
 }
 
 
 void NCursesWin::sendLogLvl(uint8_t lvl){
+	publish(cmdstrbase + "log " + std::to_string(lvl));
 }
 
 
 void NCursesWin::sendPrintAgenda(){
+	publish(cmdstrbase + "print agenda");
 }
 
 
 void NCursesWin::sendPrintFacts(){
+	publish(cmdstrbase + "print facts");
 }
 
 
 void NCursesWin::sendPrintRules(){
+	publish(cmdstrbase + "print rules");
 }
 
 
 void NCursesWin::sendRun(uint32_t n){
+	publish(cmdstrbase + "run " + std::to_string(n));
 }
 
 
 void NCursesWin::sendReset(){
+	publish(cmdstrbase + "reset");
 }
 
 
 void NCursesWin::sendWatchFunc(){
+	publish(cmdstrbase + "watch functions");
 }
 
 
 void NCursesWin::sendWatchGlob(){
+	publish(cmdstrbase + "watch globals");
 }
 
 
 void NCursesWin::sendWatchFacts(){
+	publish(cmdstrbase + "watch facts");
 }
 
 
 void NCursesWin::sendWatchRules(){
+	publish(cmdstrbase + "watch rules");
 }
 

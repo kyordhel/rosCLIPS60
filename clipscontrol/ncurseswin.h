@@ -4,10 +4,12 @@
 #include <tuple>
 #include <string>
 #include <vector>
+#include <functional>
 #include <ncurses.h>
 
 
 typedef std::tuple<std::string, std::string> hotkey;
+typedef std::function<void(const std::string& s)> pubfunc;
 
 class NCursesWin{
 public:
@@ -27,8 +29,17 @@ private:
 		Unknown  = 3
 	};
 
+	enum class InputAction{
+		None    = 0,
+		Load    = 1,
+		RawCmd  = 2,
+		Run     = 3
+	};
+
 public:
 	void poll();
+	void addPublisher(const pubfunc& f);
+	// void removePublisher(const pubfunc& f);
 
 private:
 	void createWindows();
@@ -62,6 +73,7 @@ private:
 	void sendWatchGlob();
 	void sendWatchFacts();
 	void sendWatchRules();
+	void publish(const std::string& s);
 
 private:
 	WINDOW *top;
@@ -71,7 +83,9 @@ private:
 	std::string inputPrompt;
 	std::string inputBuffer;
 	bool inputNumericOnly;
-
+	std::vector<pubfunc> publishers;
+	std::string cmdstrbase;
+	InputAction inputAction;
 };
 
 #endif // __NCURSES_WIN_H__

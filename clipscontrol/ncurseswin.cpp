@@ -255,7 +255,7 @@ void NCursesWin::printmid(const std::string& str){
 	getmaxyx(mid, rows, cols);
 
 	std::string s(str);
-	if(*(s.end()) != '\n') s+='\n';
+	// if(*(s.end()) != '\n') s+='\n';
 	if(history.size() >= rows){
 		while(history.size() >= rows)
 			history.pop_front();
@@ -266,8 +266,9 @@ void NCursesWin::printmid(const std::string& str){
 			wprintw(mid, "%s", line.c_str());
 	}
 
-	// if(!history.empty() )
-	history.push_back(s);
+	if( history.empty() || ( *(history.back().end()) != '\n' ) )
+		history.push_back(s);
+	else history.back()+= s;
 	wprintw(mid, "%s", s.c_str());
 	wrefresh(mid);
 	// mvwprintw(mid, 1, 5, "Screen size %dx%d", rows, cols);

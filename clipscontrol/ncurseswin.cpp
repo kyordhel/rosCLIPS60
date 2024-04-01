@@ -14,6 +14,7 @@ void ctrlc_handler(int signum) {}
 ** ** ****************************************************************/
 NCursesWin::NCursesWin() :
 	top(NULL), mid(NULL), bottom(NULL),
+	watchFlags(-1),
 	currMod(KPMode::Default), inputAction(InputAction::None)
 {
 	cmdstrbase.push_back((char)0);
@@ -119,27 +120,18 @@ void NCursesWin::handleKeyDefault(const uint32_t& c, bool& exit){
 			exit = true;
 			return;
 
-		case 'A': case 'a':
-			sendPrintAgenda();
-			break;
+		case 'A': case 'a': sendPrintAgenda(); break;
+		case 'F': case 'f': sendPrintFacts();  break;
+		case 'R': case 'r': sendPrintRules();  break;
 
-		case 'F': case 'f':
-			sendPrintFacts();
-			break;
+		case KEY_F(1): sendWatchFunc();  break;
+		case KEY_F(2): sendWatchGlob();  break;
+		case KEY_F(3): sendWatchFacts(); break;
+		case KEY_F(4): sendWatchRules(); break;
 
-		case 'R': case 'r':
-			sendPrintRules();
-			break;
-
-		case KEY_F(5):
-			sendRun(1);
-			break;
-
-		case KEY_F(6):
-			sendRun(0);
-			break;
-
-		case KEY_F(7):
+		case KEY_F(5): sendRun(1); break;
+		case KEY_F(6): sendRun(0); break;
+ 		case KEY_F(7):
 			inputAction = InputAction::Run;
 			shiftToInputMode("Run: ", true);
 			break;
@@ -162,7 +154,7 @@ void NCursesWin::handleKeyDefault(const uint32_t& c, bool& exit){
 			shiftToLogLvlMode();
 
 		default:
-			mvwprintw(mid, 24, 0, "Charcter pressed is = %3d Hopefully it can be printed as '%c'", c, c);
+			// mvwprintw(mid, 24, 0, "Charcter pressed is = %3d Hopefully it can be printed as '%c'", c, c);
 			// refresh();
 			break;
 	}
@@ -370,6 +362,13 @@ void NCursesWin::resetBottomLogLevel(){
 }
 
 
+void NCursesWin::setWatchFlags(int flags){
+	if(flags == watchFlags) return;
+	watchFlags = flags;
+	updateWatches(true);
+}
+
+
 void NCursesWin::shiftToDefaultMode(){
 	currMod = KPMode::Default;
 	curs_set(0);
@@ -455,16 +454,26 @@ void NCursesWin::updateWatch(size_t col, size_t colw, const std::string& wname, 
 }
 
 
-void NCursesWin::updateWatches(){
+void NCursesWin::updateWatches(bool refresh){
 	int rows, cols;
 	getmaxyx(stdscr, rows, cols);
 	int col = 0;
 	int colw = cols / 4;
 
-	updateWatch(col++, colw, "Functions", WatchColor::Unknown);
-	updateWatch(col++, colw, "Globals", WatchColor::Disabled);
-	updateWatch(col++, colw, "Facts", WatchColor::Enabled);
-	updateWatch(col++, colw, "Rules", WatchColor::Enabled);
+	if(watchFlags == -1){
+		updateWatch(col++, colw, "Functions", WatchColor::Unknown);
+		updateWatch(col++, colw, "Globals",   WatchColor::Unknown);
+		updateWatch(col++, colw, "Facts",     WatchColor::Unknown);
+		updateWatch(col++, colw, "Rules",     WatchColor::Unknown);
+	}
+	else{
+		// Facts = 0x01, Rules = 0x02, Globals = 0x40, Deffunctions = 0x80
+		updateWatch(col++, colw, "Functions", (watchFlags & 0x80) ? WatchColor::Enabled : WatchColor::Disabled);
+		updateWatch(col++, colw, "Globals",   (watchFlags & 0x40) ? WatchColor::Enabled : WatchColor::Disabled);
+		updateWatch(col++, colw, "Facts",     (watchFlags & 0x01) ? WatchColor::Enabled : WatchColor::Disabled);
+		updateWatch(col++, colw, "Rules",     (watchFlags & 0x02) ? WatchColor::Enabled : WatchColor::Disabled);
+	}
+	if(refresh) wrefresh(top);
 }
 
 

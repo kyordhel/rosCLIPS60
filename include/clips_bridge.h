@@ -33,6 +33,7 @@ private:
 
 	std::string topicIn;
 	std::string topicOut;
+	std::string topicStatus;
 
 	ros::NodeHandle* nodeHandle;
 	std::unordered_map<std::string, ros::Publisher> publishers;
@@ -51,7 +52,18 @@ private:
 
 
 public:
-	bool init(int argc, char **argv, ros::NodeHandle& nh);
+	/**
+	 * Initializes the bridge. Must be called after
+	 * @param  argc  main's argc
+	 * @param  argv  main's argv
+	 * @param  nh    A ros::NodeHandle used to create subscribers, publishers, etc.
+	 * @param  delay Connection stabilization delay in milliseconds.
+	 *               The amount of time to wait before initializing
+	 *               CLIPS once ROS infrastructure has been created.
+	 *               Default is 500ms.
+	 * @return       true if initialization completed successfully, false otherwise
+	 */
+	bool init(int argc, char **argv, ros::NodeHandle& nh, int delay=500);
 	bool loadFile(std::string const& fpath);
 	bool loadClp(std::string const& fpath);
 	bool loadDat(std::string const& fpath);
@@ -80,6 +92,7 @@ private:
 	void printHelp(std::string const& pname);
 	bool publish(std::string const& message);
 	bool publish(std::string const& topic_name, std::string const& message);
+	bool publishStatus();
 	bool subscribe(std::string const& topic_name, std::string const& fact_name);
 
 	void printFacts();

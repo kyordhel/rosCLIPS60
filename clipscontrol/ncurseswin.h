@@ -39,6 +39,7 @@ private:
 public:
 	void poll();
 	void addPublisher(const pubfunc& f);
+	void setWatchFlags(int flags);
 	// void removePublisher(const pubfunc& f);
 
 private:
@@ -50,7 +51,7 @@ private:
 	void updateTop(const std::string& mid);
 	void updateBottom(const std::string& title, const std::vector<hotkey>& options);
 	void updateWatch(size_t xpos, size_t colw, const std::string& wname, const WatchColor& color);
-	void updateWatches();
+	void updateWatches(bool refresh=false);
 	void printBottomOptions(const std::vector<hotkey>& options);
 	void handleKeyDefault(const uint32_t& c, bool& exit);
 	void handleKeyInput(const uint32_t& c, bool& exit);
@@ -86,6 +87,7 @@ private:
 	std::vector<pubfunc> publishers;
 	std::string cmdstrbase;
 	InputAction inputAction;
+	int watchFlags;
 };
 
 #endif // __NCURSES_WIN_H__

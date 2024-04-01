@@ -1,6 +1,7 @@
 #ifndef __NCURSES_WIN_H__
 #define __NCURSES_WIN_H__
 
+#include <list>
 #include <tuple>
 #include <string>
 #include <vector>
@@ -41,6 +42,7 @@ public:
 	void exitPoll();
 	void addPublisher(const pubfunc& f);
 	void setWatchFlags(int flags);
+	void print(const std::string& s);
 	// void removePublisher(const pubfunc& f);
 
 private:
@@ -53,6 +55,7 @@ private:
 	void updateBottom(const std::string& title, const std::vector<hotkey>& options);
 	void updateWatch(size_t xpos, size_t colw, const std::string& wname, const WatchColor& color);
 	void updateWatches(bool refresh=false);
+	void printmid(const std::string& str);
 	void printBottomOptions(const std::vector<hotkey>& options);
 	void handleKeyDefault(const uint32_t& c);
 	void handleKeyInput(const uint32_t& c);

@@ -1,5 +1,6 @@
 #include "ncurseswin.h"
 #include <signal.h>
+#include <thread>
 
 #define ctrl(x) ((x) & 0x1f)
 
@@ -31,12 +32,6 @@ NCursesWin::NCursesWin() :
 	// printw("w: %d, h: %d\n", COLS, LINES);
 	createWindows();
 	keypad(bottom, TRUE); // Enable Fn keys
-
-	int rows, cols;
-	getmaxyx(stdscr, rows, cols);
-	mvwprintw(mid, 0, 5, "%s", "Hello world!");
-	mvwprintw(mid, 1, 5, "Screen size %dx%d", rows, cols);
-	wrefresh(mid);
 
 	use_default_colors();
 	init_pair((int16_t)WatchColor::Enabled,  COLOR_BLACK, COLOR_GREEN);
@@ -249,6 +244,36 @@ void NCursesWin::handleInputNL(){
 }
 
 
+void NCursesWin::print(const std::string& s){
+	printmid(s);
+}
+
+
+void NCursesWin::printmid(const std::string& str){
+	static std::list<std::string> history;
+	int rows, cols;
+	getmaxyx(mid, rows, cols);
+
+	std::string s(str);
+	if(*(s.end()) != '\n') s+='\n';
+	if(history.size() >= rows){
+		while(history.size() >= rows)
+			history.pop_front();
+		// mvwprintw(mid, 0, 0, s.c_str());
+		wclear(mid);
+		wmove(mid, 0, 0);
+		for(auto& line: history)
+			wprintw(mid, "%s", line.c_str());
+	}
+
+	// if(!history.empty() )
+	history.push_back(s);
+	wprintw(mid, "%s", s.c_str());
+	wrefresh(mid);
+	// mvwprintw(mid, 1, 5, "Screen size %dx%d", rows, cols);
+}
+
+
 void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
 	int col = 0, row = 1, kpad, lpad, width;
 	for(auto&& tuple: options){
@@ -266,8 +291,8 @@ void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
 
 
 void NCursesWin::publish(const std::string& s){
-	mvwprintw(mid, 2, 0, "Published: %s", s.c_str());
-	wrefresh(mid);
+	if(s.length() < 1) return;
+	printmid("Published: " + (s[0] == 0 ? s.substr(1) : s) + "\n");
 	for(const auto& f: publishers) f(s);
 }
 

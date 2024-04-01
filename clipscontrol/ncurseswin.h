@@ -38,6 +38,7 @@ private:
 
 public:
 	void poll();
+	void exitPoll();
 	void addPublisher(const pubfunc& f);
 	void setWatchFlags(int flags);
 	// void removePublisher(const pubfunc& f);
@@ -53,9 +54,9 @@ private:
 	void updateWatch(size_t xpos, size_t colw, const std::string& wname, const WatchColor& color);
 	void updateWatches(bool refresh=false);
 	void printBottomOptions(const std::vector<hotkey>& options);
-	void handleKeyDefault(const uint32_t& c, bool& exit);
-	void handleKeyInput(const uint32_t& c, bool& exit);
-	void handleKeyLogLvl(const uint32_t& c, bool& exit);
+	void handleKeyDefault(const uint32_t& c);
+	void handleKeyInput(const uint32_t& c);
+	void handleKeyLogLvl(const uint32_t& c);
 	void shiftToDefaultMode();
 	void shiftToInputMode(const std::string& prompt, bool numeric=false);
 	void shiftToLogLvlMode();
@@ -77,6 +78,7 @@ private:
 	void publish(const std::string& s);
 
 private:
+	bool exit;
 	WINDOW *top;
 	WINDOW *mid;
 	WINDOW *bottom;

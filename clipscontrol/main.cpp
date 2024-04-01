@@ -41,6 +41,7 @@ int main(int argc, char** argv){
 
 	std::thread ncwThread = std::thread(asyncNcwTask, &ncw);
 	ros::spin();
+	ncw.exitPoll();
 	ncwThread.join();
 	return 0;
 }

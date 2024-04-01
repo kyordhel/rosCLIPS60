@@ -13,7 +13,7 @@ void ctrlc_handler(int signum) {}
 *
 ** ** ****************************************************************/
 NCursesWin::NCursesWin() :
-	top(NULL), mid(NULL), bottom(NULL),
+	exit(false), top(NULL), mid(NULL), bottom(NULL),
 	watchFlags(-1),
 	currMod(KPMode::Default), inputAction(InputAction::None)
 {
@@ -83,38 +83,40 @@ void NCursesWin::destroyWindows(){
 }
 
 
+void NCursesWin::exitPoll(){
+	exit = true;
+}
+
 
 void NCursesWin::poll(){
 	uint32_t c;
-	bool exit;
-	while(true){
-		c = wgetch(bottom);
+	wtimeout(bottom, 250);
+	while(!exit){
+		if ((c = wgetch(bottom)) == ERR) continue;
 		switch(currMod){
 			case KPMode::LogLvl:
-				handleKeyLogLvl(c, exit);
+				handleKeyLogLvl(c);
 				break;
 
 			case KPMode::Input:
-				handleKeyInput(c, exit);
+				handleKeyInput(c);
 				break;
 
 			default:
-				handleKeyDefault(c, exit);
+				handleKeyDefault(c);
 				break;
 		}
-		if(exit) return;
 	}
 }
 
 
-void NCursesWin::handleKeyDefault(const uint32_t& c, bool& exit){
+void NCursesWin::handleKeyDefault(const uint32_t& c){
 	// if (c == 20){
 	// 	mvwprintw(mid, 24, 0, "Key pressed is (%3d) F12", c, c);
 	// 	wrefresh(mid);
 	// 	continue;
 	// }
 	// wrefresh(mid);
-	exit = false;
 	switch(c){
 		case ctrl('X'):
 			exit = true;
@@ -162,8 +164,7 @@ void NCursesWin::handleKeyDefault(const uint32_t& c, bool& exit){
 }
 
 
-void NCursesWin::handleKeyInput(const uint32_t& c, bool& exit){
-	exit = false;
+void NCursesWin::handleKeyInput(const uint32_t& c){
 	switch(c){
 		case ctrl('X'):
 			exit = true;
@@ -195,8 +196,7 @@ void NCursesWin::handleKeyInput(const uint32_t& c, bool& exit){
 }
 
 
-void NCursesWin::handleKeyLogLvl(const uint32_t& c, bool& exit){
-	exit = false;
+void NCursesWin::handleKeyLogLvl(const uint32_t& c){
 	switch(c){
 		case ctrl('C'):
 			currMod = KPMode::Default;

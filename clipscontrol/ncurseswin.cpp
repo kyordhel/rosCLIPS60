@@ -485,7 +485,8 @@ void NCursesWin::sendLoad(const std::string& file){
 
 
 void NCursesWin::sendLogLvl(uint8_t lvl){
-	publish(cmdstrbase + "log " + std::to_string(lvl));
+	// publish(cmdstrbase + "log " + std::to_string(lvl));
+	sendCommand("(bind ?*logLevel* " + std::to_string(lvl) + ")");
 }
 
 

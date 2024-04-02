@@ -38,8 +38,13 @@ NCursesWin::NCursesWin() :
 	init_pair((int16_t)WatchColor::Disabled, COLOR_BLACK,   COLOR_RED);
 	init_pair((int16_t)WatchColor::Unknown,  COLOR_CYAN,  COLOR_BLACK);
 
-	updateTop("CLIPS Control");
+	updateTop();
 	resetBottomDefault();
+
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+	printmid("Rows: " + std::to_string(rows) + "\n");
+	printmid("Cols: " + std::to_string(cols) + "\n");
 }
 
 
@@ -89,6 +94,10 @@ void NCursesWin::poll(){
 	wtimeout(bottom, 250);
 	while(!exit){
 		if ((c = wgetch(bottom)) == ERR) continue;
+		if (c == KEY_RESIZE){
+			resize();
+			continue;
+		}
 		switch(currMod){
 			case KPMode::LogLvl:
 				handleKeyLogLvl(c);
@@ -102,6 +111,37 @@ void NCursesWin::poll(){
 				handleKeyDefault(c);
 				break;
 		}
+	}
+}
+
+void NCursesWin::resize(){
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+
+	wresize(top, rows, cols);
+	updateTop();
+
+	wresize(mid, rows-6, cols);
+	wclear(mid); wmove(mid, 0, 0);
+	for(auto& line: history)
+		wprintw(mid, (trimLines ? line.substr(0, cols) : line).c_str() );
+	wrefresh(mid);
+
+	mvwin(bottom, rows-4, 0);
+	wresize(bottom, 4, cols);
+	// wrefresh(bottom);
+
+	switch(currMod){
+		case KPMode::Input:
+			resetBottomInput(inputPrompt);
+			break;
+		case KPMode::LogLvl:
+			resetBottomLogLevel();
+			break;
+		// case KPMode::Default:
+		default:
+			resetBottomDefault();
+			break;
 	}
 }
 
@@ -250,30 +290,36 @@ void NCursesWin::print(const std::string& s){
 }
 
 
-void NCursesWin::printmid(const std::string& str, const bool& trim){
-	if(!trim)
-		wprintw(mid, "%s", str.c_str() );
+void NCursesWin::printmid(const std::string& str, const bool& log){
+	history.push_back(str);
+	if(!trimLines)
+		wprintw(mid, str.c_str() );
 	else{
 		int rows, cols;
 		getmaxyx(mid, rows, cols);
 		std::string s = str.substr(0, cols);
-		wprintw(mid, "%s", s.c_str());
+		wprintw(mid, s.c_str() );
 	}
 	wrefresh(mid);
 }
 
 
 void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
-	int col = 0, row = 1, kpad, lpad, width;
+	int col = 0, row = 1, kpad, lpad, lblOffset, cols, rows;
+	getmaxyx(mid, rows, cols);
+	if(cols <= 72) lblOffset = 2;
+	else lblOffset = 3;
+	// else lblWidth = 19;
+	int colWidth = 3 * cols / options.size();
 	for(auto&& tuple: options){
 		std::string key, label;
 		std::tie(key, label) = tuple;
 		wattron(bottom, A_REVERSE);
 		kpad = col ? 2 - key.length() : 0;
-		mvwprintw(bottom, row, 19*col+kpad, "%s", key.c_str() );
+		mvwprintw(bottom, row, colWidth*col+kpad, "%s", key.c_str() );
 		wattroff(bottom, A_REVERSE);
-		lpad = 19*col + 3;
-		mvwprintw(bottom, row, lpad, "%s", label.c_str() );
+		lpad = colWidth*col + lblOffset;
+		mvwprintw(bottom, row, lpad, "%s", label.substr(0, colWidth - lblOffset).c_str() );
 		if(++row > 3){ row = 1; ++col; }
 	}
 }
@@ -307,6 +353,7 @@ void NCursesWin::resetBottomInput(const std::string& prompt){
 
 	inputPrompt = prompt;
 	wmove(bottom, 0, prompt.length());
+	wprintw(bottom, inputBuffer.c_str());
 	curs_set(2);
 	wrefresh(mid);
 	wrefresh(bottom);
@@ -422,17 +469,18 @@ void NCursesWin::updateBottom(const std::string& title, const std::vector<hotkey
 }
 
 
-void NCursesWin::updateTop(const std::string& mid){
+void NCursesWin::updateTop(){
+	std::string cstr = "CLIPS Control";
 	int rows, cols;
 	getmaxyx(stdscr, rows, cols);
 
-	int lpad = (cols - mid.length())/2;
-	int rpad = cols - lpad - mid.length();
+	int lpad = (cols - cstr.length())/2;
+	int rpad = cols - lpad - cstr.length();
 
 	wattron(top, A_REVERSE);
 	mvwprintw(top, 0, 0, "%*s%s%*s",
 		lpad, "",
-		mid.c_str(),
+		cstr.c_str(),
 		rpad, ""
 	);
 	wattroff(top, A_REVERSE);

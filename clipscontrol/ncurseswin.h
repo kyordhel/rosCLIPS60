@@ -14,6 +14,9 @@ typedef std::function<void(const std::string& s)> pubfunc;
 
 class NCursesWin{
 public:
+	static const int MINCOLS = 60;
+
+public:
 	NCursesWin();
 	~NCursesWin();
 
@@ -51,11 +54,12 @@ private:
 	void resetBottomDefault();
 	void resetBottomInput(const std::string& prompt);
 	void resetBottomLogLevel();
-	void updateTop(const std::string& mid);
+	void resize();
+	void updateTop();
 	void updateBottom(const std::string& title, const std::vector<hotkey>& options);
 	void updateWatch(size_t xpos, size_t colw, const std::string& wname, const WatchColor& color);
 	void updateWatches(bool refresh=false);
-	void printmid(const std::string& str, const bool& trim = false);
+	void printmid(const std::string& str, const bool& log = true);
 	void printBottomOptions(const std::vector<hotkey>& options);
 	void handleKeyDefault(const uint32_t& c);
 	void handleKeyInput(const uint32_t& c);
@@ -93,6 +97,8 @@ private:
 	std::string cmdstrbase;
 	InputAction inputAction;
 	int watchFlags;
+	bool trimLines;
+	std::list<std::string> history;
 };
 
 #endif // __NCURSES_WIN_H__

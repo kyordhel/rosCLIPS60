@@ -64,6 +64,7 @@ void NCursesWin::createWindows(){
 	top = newwin(     2, cols,      0, 0); // <- h, w, y, x
 	mid = newwin(rows-6, cols,      2, 0);
 	bottom = newwin(  4, cols, rows-4, 0);
+	scrollok(mid, true);
 	refresh(); // Print it on to the real screen
 }
 
@@ -249,29 +250,16 @@ void NCursesWin::print(const std::string& s){
 }
 
 
-void NCursesWin::printmid(const std::string& str){
-	static std::list<std::string> history;
-	int rows, cols;
-	getmaxyx(mid, rows, cols);
-
-	std::string s(str);
-	// if(*(s.end()) != '\n') s+='\n';
-	if(history.size() >= rows){
-		while(history.size() >= rows)
-			history.pop_front();
-		// mvwprintw(mid, 0, 0, s.c_str());
-		wclear(mid);
-		wmove(mid, 0, 0);
-		for(auto& line: history)
-			wprintw(mid, "%s", line.c_str());
+void NCursesWin::printmid(const std::string& str, const bool& trim){
+	if(!trim)
+		wprintw(mid, "%s", str.c_str() );
+	else{
+		int rows, cols;
+		getmaxyx(mid, rows, cols);
+		std::string s = str.substr(0, cols);
+		wprintw(mid, "%s", s.c_str());
 	}
-
-	if( history.empty() || ( *(history.back().end()) != '\n' ) )
-		history.push_back(s);
-	else history.back()+= s;
-	wprintw(mid, "%s", s.c_str());
 	wrefresh(mid);
-	// mvwprintw(mid, 1, 5, "Screen size %dx%d", rows, cols);
 }
 
 

@@ -31,21 +31,21 @@ private:
 	sync_queue& operator=(sync_queue const&);
 
 public:
-	sync_queue() : _q(), _m(), _cv(){}
+	sync_queue(){}
 	~sync_queue(){}
 
 	/**
 	 * Retrieves an element from the synchronous queue
 	 * @return The retrieved element
 	 */
-	virtual T& consume() {
+	virtual const T consume() {
 		std::unique_lock<std::timed_mutex> ul(this->_m);  // Exclusive access to the queue
 
 		// Wait until there is an element in the queue
 		// We use a while because there can be spurious wake ups
 		while( this->_q.empty() )
 			this->_cv.wait(ul);                           // Wait for an element to be enqueued
-		T& obj = this->_q.front();                        // Retrieve object
+		T obj = this->_q.front();                        // Retrieve object
 		this->_q.pop();                                   // Pop the queue
 		return obj;
 	}

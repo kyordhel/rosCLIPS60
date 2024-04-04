@@ -20,6 +20,13 @@ public:
 	NCursesWin();
 	~NCursesWin();
 
+public:
+	enum class CLIPSStatus{
+		Offline = 0,
+		Online  = 1,
+		Unknown = 2
+	};
+
 private:
 	enum class KPMode{
 		Default = 0,
@@ -27,7 +34,7 @@ private:
 		LogLvl  = 2
 	};
 
-	enum class WatchColor : int16_t{
+	enum class WatchStatus{
 		Enabled  = 1,
 		Disabled = 2,
 		Unknown  = 3
@@ -45,6 +52,7 @@ public:
 	void exitPoll();
 	void addPublisher(const pubfunc& f);
 	void setWatchFlags(int flags);
+	void setCLIPSStatus(const CLIPSStatus& status);
 	void print(const std::string& s);
 	// void removePublisher(const pubfunc& f);
 
@@ -56,8 +64,11 @@ private:
 	void resetBottomLogLevel();
 	void resize();
 	void updateTop();
+	void updateTopL();
+	void updateTopC();
+	void updateTopR();
 	void updateBottom(const std::string& title, const std::vector<hotkey>& options);
-	void updateWatch(size_t xpos, size_t colw, const std::string& wname, const WatchColor& color);
+	void updateWatch(size_t xpos, size_t colw, const std::string& wname, const WatchStatus& color);
 	void updateWatches(bool refresh=false);
 	void printmid(const std::string& str, const bool& log = true);
 	void printBottomOptions(const std::vector<hotkey>& options);
@@ -90,6 +101,10 @@ private:
 	WINDOW *mid;
 	WINDOW *bottom;
 	KPMode currMod;
+	CLIPSStatus clipsStatus;
+	std::string headingL;
+	std::string headingR;
+	std::string headingC;
 	std::string inputPrompt;
 	std::string inputBuffer;
 	bool inputNumericOnly;

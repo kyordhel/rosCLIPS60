@@ -15,8 +15,10 @@ void ctrlc_handler(int signum) {}
 ** ** ****************************************************************/
 NCursesWin::NCursesWin() :
 	exit(false), top(NULL), mid(NULL), bottom(NULL),
+	headingC("CLIPS Control"), headingR("rosclips60: OFF"),
 	watchFlags(-1),
-	currMod(KPMode::Default), inputAction(InputAction::None)
+	currMod(KPMode::Default), inputAction(InputAction::None),
+	clipsStatus(CLIPSStatus::Offline)
 {
 	cmdstrbase.push_back((char)0);
 	inputPrompt.reserve(25);
@@ -34,9 +36,14 @@ NCursesWin::NCursesWin() :
 	keypad(bottom, TRUE); // Enable Fn keys
 
 	use_default_colors();
-	init_pair((int16_t)WatchColor::Enabled,  COLOR_BLACK, COLOR_GREEN);
-	init_pair((int16_t)WatchColor::Disabled, COLOR_BLACK,   COLOR_RED);
-	init_pair((int16_t)WatchColor::Unknown,  COLOR_CYAN,  COLOR_BLACK);
+	init_pair(0x00, -1, -1);
+	init_pair(0x10+(int16_t)WatchStatus::Enabled,  COLOR_BLACK, COLOR_GREEN);
+	init_pair(0x10+(int16_t)WatchStatus::Disabled, COLOR_BLACK,   COLOR_RED);
+	init_pair(0x10+(int16_t)WatchStatus::Unknown,   COLOR_CYAN,  COLOR_BLACK);
+
+	init_pair(0x20+(int16_t)CLIPSStatus::Online,   -1, COLOR_GREEN);
+	init_pair(0x20+(int16_t)CLIPSStatus::Offline,  -1, COLOR_RED);
+	init_pair(0x20+(int16_t)CLIPSStatus::Unknown,  -1, -1);
 
 	updateTop();
 	resetBottomDefault();
@@ -430,6 +437,22 @@ void NCursesWin::setWatchFlags(int flags){
 }
 
 
+void NCursesWin::setCLIPSStatus(const CLIPSStatus& status){
+	if(status == clipsStatus) return;
+	clipsStatus = status;
+	headingR = "rosclips60: ";
+	if(status == CLIPSStatus::Online){
+		print(headingR + "Online\n");
+		headingR+= "ON";
+	}else{
+		print(headingR + "Offline\n");
+		headingR+= "OFF";
+	}
+	updateTopR();
+	wrefresh(top);
+}
+
+
 void NCursesWin::shiftToDefaultMode(){
 	currMod = KPMode::Default;
 	curs_set(0);
@@ -470,26 +493,68 @@ void NCursesWin::updateBottom(const std::string& title, const std::vector<hotkey
 
 
 void NCursesWin::updateTop(){
-	std::string cstr = "CLIPS Control";
-	int rows, cols;
-	getmaxyx(stdscr, rows, cols);
-
-	int lpad = (cols - cstr.length())/2;
-	int rpad = cols - lpad - cstr.length();
-
-	wattron(top, A_REVERSE);
-	mvwprintw(top, 0, 0, "%*s%s%*s",
-		lpad, "",
-		cstr.c_str(),
-		rpad, ""
-	);
-	wattroff(top, A_REVERSE);
+	updateTopL();
+	updateTopR();
+	updateTopC();
 	updateWatches();
 	wrefresh(top);
 }
 
 
-void NCursesWin::updateWatch(size_t col, size_t colw, const std::string& wname, const WatchColor& color){
+void NCursesWin::updateTopL(){
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+
+	int width = cols / 3;
+	int rpad = width - headingL.length();
+
+	wattron(top, A_REVERSE);
+	mvwprintw(top, 0, 0, "%s%*s",
+		headingL.c_str(),
+		rpad, ""
+	);
+	wattroff(top, A_REVERSE);
+}
+
+
+void NCursesWin::updateTopC(){
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+
+	int width = cols - (2 * cols / 3);
+	int lpad = (width - headingC.length())/2;
+	int rpad = width - lpad - headingC.length();
+
+	wattron(top, A_REVERSE);
+	mvwprintw(top, 0, cols/3, "%*s%s%*s",
+		lpad, "",
+		headingC.c_str(),
+		rpad, ""
+	);
+	wattroff(top, A_REVERSE);
+}
+
+
+void NCursesWin::updateTopR(){
+	int rows, cols;
+	getmaxyx(stdscr, rows, cols);
+
+	int width = cols / 3;
+	int lpad = width - headingR.length();
+
+	short color = 0x20 + (short)clipsStatus;
+	wattron(top, COLOR_PAIR(color) | A_BOLD | A_REVERSE);
+	// wcolor_set(top, color, NULL);
+	mvwprintw(top, 0, cols - cols/3, "%*s%s",
+		lpad, "",
+		headingR.c_str()
+	);
+	// wcolor_set(top, 0, NULL);
+	wattroff(top, COLOR_PAIR(color) | A_BOLD | A_REVERSE);
+}
+
+
+void NCursesWin::updateWatch(size_t col, size_t colw, const std::string& wname, const WatchStatus& status){
 	std::string pwname;
 
 	if( colw < wname.length() )
@@ -499,20 +564,21 @@ void NCursesWin::updateWatch(size_t col, size_t colw, const std::string& wname, 
 	else
 		pwname = "Watch " + wname;
 	if( colw > (wname.length() + 6) ){
-		if(color == WatchColor::Unknown)  pwname += " (?)";
-		if(color == WatchColor::Enabled)  pwname += " (on)";
-		if(color == WatchColor::Disabled) pwname += " (off)";
+		if(status == WatchStatus::Unknown)  pwname += " (?)";
+		if(status == WatchStatus::Enabled)  pwname += " (on)";
+		if(status == WatchStatus::Disabled) pwname += " (off)";
 	}
+	short color = 0x10 + (short)status;
 
 	int lpad = (colw - pwname.length())/2;
 	int rpad = colw - lpad - pwname.length();
-	wattron(top, (int16_t)COLOR_PAIR(color));
-	mvwprintw(top, 1, col*colw, "%*s%s%*s",
+	wattron(top, COLOR_PAIR(color));
+	mvwprintw(top, 1, col, "%*s%s%*s",
 		lpad, "",
 		pwname.c_str(),
 		rpad, ""
 	);
-	wattroff(top, (int16_t)COLOR_PAIR(color));
+	wattroff(top, COLOR_PAIR(color));
 }
 
 
@@ -521,19 +587,20 @@ void NCursesWin::updateWatches(bool refresh){
 	getmaxyx(stdscr, rows, cols);
 	int col = 0;
 	int colw = cols / 4;
+	int clw1 = cols - 3*colw;
 
 	if(watchFlags == -1){
-		updateWatch(col++, colw, "Functions", WatchColor::Unknown);
-		updateWatch(col++, colw, "Globals",   WatchColor::Unknown);
-		updateWatch(col++, colw, "Facts",     WatchColor::Unknown);
-		updateWatch(col++, colw, "Rules",     WatchColor::Unknown);
+		updateWatch(col,       clw1, "Functions", WatchStatus::Unknown);
+		updateWatch(col+=clw1, colw, "Globals",   WatchStatus::Unknown);
+		updateWatch(col+=colw, colw, "Facts",     WatchStatus::Unknown);
+		updateWatch(col+=colw, colw, "Rules",     WatchStatus::Unknown);
 	}
 	else{
 		// Facts = 0x01, Rules = 0x02, Globals = 0x40, Deffunctions = 0x80
-		updateWatch(col++, colw, "Functions", (watchFlags & 0x80) ? WatchColor::Enabled : WatchColor::Disabled);
-		updateWatch(col++, colw, "Globals",   (watchFlags & 0x40) ? WatchColor::Enabled : WatchColor::Disabled);
-		updateWatch(col++, colw, "Facts",     (watchFlags & 0x01) ? WatchColor::Enabled : WatchColor::Disabled);
-		updateWatch(col++, colw, "Rules",     (watchFlags & 0x02) ? WatchColor::Enabled : WatchColor::Disabled);
+		updateWatch(col,       clw1, "Functions", (watchFlags & 0x80) ? WatchStatus::Enabled : WatchStatus::Disabled);
+		updateWatch(col+=clw1, colw, "Globals",   (watchFlags & 0x40) ? WatchStatus::Enabled : WatchStatus::Disabled);
+		updateWatch(col+=colw, colw, "Facts",     (watchFlags & 0x01) ? WatchStatus::Enabled : WatchStatus::Disabled);
+		updateWatch(col+=colw, colw, "Rules",     (watchFlags & 0x02) ? WatchStatus::Enabled : WatchStatus::Disabled);
 	}
 	if(refresh) wrefresh(top);
 }

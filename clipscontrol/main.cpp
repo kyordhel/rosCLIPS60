@@ -16,6 +16,7 @@ void sendToCLIPS(const std::string& s);
 void asyncNcwTask(NCursesWin* ncw);
 void cloutSubsCallback(const std_msgs::String::ConstPtr& msg, const std::string& topic, NCursesWin* ncw);
 void clstatSubsCallback(const std_msgs::String::ConstPtr& msg, NCursesWin* ncw);
+void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub);
 
 int main(int argc, char** argv){
 
@@ -40,9 +41,11 @@ int main(int argc, char** argv){
 	ncw.addPublisher(pf);
 
 	std::thread ncwThread = std::thread(asyncNcwTask, &ncw);
+	std::thread ccoThread = std::thread(asyncCheckClipsOnlineTask, &ncw, &subcls);
 	ros::spin();
 	ncw.exitPoll();
 	ncwThread.join();
+	ccoThread.join();
 	return 0;
 }
 
@@ -78,4 +81,15 @@ void asyncNcwTask(NCursesWin* ncw){
 	std::cout << "GUI terminated. Awaiting for ROS..." << std::endl;
 	ros::shutdown();
 	std::cout << "Done." << std::endl;
+}
+
+
+void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub){
+	do{
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		ncw->setCLIPSStatus(sub->getNumPublishers() > 0 ?
+			NCursesWin::CLIPSStatus::Online : NCursesWin::CLIPSStatus::Offline);
+	}
+	while( ros::ok() );
+
 }

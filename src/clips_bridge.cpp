@@ -419,12 +419,18 @@ void ClipsBridge::run(){
 *
 * *** *******************************************************/
 void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic) {
-	ROS_INFO("CLIPS in: [%s] (%lu bytes) via %s", msg->data.c_str(), msg->data.length(), topic.c_str());
-	if (topic == topicIn)
-		queue.produce(msg->data);
-	else if (topic_facts.find("f") != topic_facts.end()){
-		clips::assertString( "(" + topic_facts[topic] + " " + msg->data + ")" );
+	if(msg->data.length() < 1) return;
+	if(msg->data[0] != 0)
+		ROS_INFO("[%s]: [%s]", topic.c_str(), msg->data.c_str());
+	else
+		ROS_INFO("[%s] (%lu bytes):", topic.c_str(), msg->data.length());
+	if (topic == topicIn){
+		queue.produce( msg->data );
 	}
+	else if(msg->data[0] != 0)
+	// else if (topic_facts.find("f") != topic_facts.end()){
+		clips::assertString( "(" + topic + " " + msg->data + ")" );
+	// }
 }
 
 

@@ -4,6 +4,8 @@
 
 #define ctrl(x) ((x) & 0x1f)
 
+BEGIN_NAMESPACE
+
 static
 void ctrlc_handler(int signum) {}
 
@@ -672,3 +674,5 @@ void NCursesWin::sendWatchRules(){
 	publish(cmdstrbase + "watch rules");
 }
 
+
+END_NAMESPACE

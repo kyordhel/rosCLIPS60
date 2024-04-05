@@ -7,7 +7,9 @@
 #include <vector>
 #include <functional>
 #include <ncurses.h>
+#include "namespace.h"
 
+BEGIN_NAMESPACE
 
 typedef std::tuple<std::string, std::string> hotkey;
 typedef std::function<void(const std::string& s)> pubfunc;
@@ -115,5 +117,7 @@ private:
 	bool trimLines;
 	std::list<std::string> history;
 };
+
+END_NAMESPACE
 
 #endif // __NCURSES_WIN_H__

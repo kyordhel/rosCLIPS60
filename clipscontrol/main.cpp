@@ -6,6 +6,8 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 
+using namespace clipscontrol;
+
 ros::Publisher pub;
 
 std::string topicClipsIn     = "clips_in";

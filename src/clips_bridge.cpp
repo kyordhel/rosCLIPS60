@@ -57,7 +57,7 @@ std::string get_current_path(){
 * *** *******************************************************/
 ClipsBridge::ClipsBridge():
 	// clips_file("cubes.dat"),
-	topicIn("clips_in"), topicOut("clips_out"),
+	topicIn("clips_in"), topicOut("clips_out"), topicStatus("clips_status"),
 	flg_facts(false), flg_rules(false), flg_trace(false),
 	num(100), nodeHandle(NULL){
 }
@@ -73,15 +73,18 @@ ClipsBridge::~ClipsBridge(){
 * Initialization
 *
 * *** *******************************************************/
-bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh){
+bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh, int delay){
 	if( !parseArgs(argc, argv) ) return false;
-
-	initCLIPS(argc, argv);
 
 	this->nodeHandle = &nh;
 	initSubscribers(nh);
 	initPublishers(nh);
 	initServices(nh);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+
+	initCLIPS(argc, argv);
+	publishStatus();
 
 	return true;
 }
@@ -103,6 +106,9 @@ void ClipsBridge::initCLIPS(int argc, char **argv){
 void ClipsBridge::initPublishers(ros::NodeHandle& nh){
 	ros::Publisher pub = nh.advertise<std_msgs::String>(topicOut, 100);
 	publishers[topicOut] = pub;
+
+	pub = nh.advertise<std_msgs::String>(topicStatus, 1);
+	publishers[topicStatus] = pub;
 }
 
 
@@ -224,6 +230,7 @@ void ClipsBridge::handleCommand(const std::string& c){
 	std::string cmd, arg;
 	splitCommand(c, cmd, arg);
 
+	ROS_INFO("Received command %s", c.c_str());
 	if(cmd == "reset") { Reset(); }
 	else if(cmd == "raw")   { clips::sendCommand(arg); }
 	else if(cmd == "print") { handlePrint(arg); }
@@ -233,7 +240,7 @@ void ClipsBridge::handleCommand(const std::string& c){
 	else if(cmd == "log")   { handleLog(arg); }
 	else return;
 
-	ROS_INFO("Handled command %s", c.c_str());
+	// ROS_INFO("Handled command %s", c.c_str());
 }
 
 
@@ -259,6 +266,7 @@ void ClipsBridge::handleWatch(const std::string& arg){
 	else if(arg == "globals"){ clips::toggleWatch(clips::WatchItem::Globals);      }
 	else if(arg == "facts"){   clips::toggleWatch(clips::WatchItem::Facts);        }
 	else if(arg == "rules"){   clips::toggleWatch(clips::WatchItem::Rules);        }
+	publishStatus();
 }
 
 
@@ -314,15 +322,21 @@ bool ClipsBridge::publish(std::string const& topic_name, std::string const& mess
 		// Topic not in publishers. Insert.
 		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topic_name), 10);
 		publishers[topic_name] = pub;
-		ROS_INFO("Added publisher for topic /%s", topic_name.c_str());
+		ROS_INFO("Added publisher for topic %s", topic_name.c_str());
 	}
 	ros::Publisher& pub = publishers[topic_name];
+	if (pub.getNumSubscribers() < 1) return false;
 	std_msgs::String msg;
 	msg.data = message;
-	// ROS_INFO("Published <%s> on /%s", message.c_str(), pub.getTopic().c_str());
 	pub.publish(msg);
-	ros::spinOnce();
+	// ROS_INFO("Published <%s> on %s", message.c_str(), pub.getTopic().c_str());
 	return true;
+}
+
+
+bool ClipsBridge::publishStatus(){
+	std::string status("watching:" + std::to_string((int)clips::getWatches()));
+	return publish(topicStatus, status);
 }
 
 
@@ -333,7 +347,7 @@ bool ClipsBridge::subscribe(std::string const& topic_name, std::string const& fa
 		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topicIn, 100,
 			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
 		);
-		ROS_INFO("Subscribed to topic /%s", topic_name.c_str());
+		ROS_INFO("Subscribed to topic %s", topic_name.c_str());
 		subscribers[topic_name] = sub;
 		topic_facts[topic_name] = fact_name;
 	}
@@ -473,6 +487,9 @@ bool ClipsBridge::parseArgs(int argc, char **argv){
 		else if (!strcmp(argv[i],"-o")){
 			topicOut = std::string(argv[i+1]);
 		}
+		else if (!strcmp(argv[i],"-s")){
+			topicStatus = std::string(argv[i+1]);
+		}
 	}
 	return true;
 }
@@ -484,6 +501,7 @@ void ClipsBridge::printDefaultArgs(std::string const& pname){
 	std::cout << "    "   << pname;
 	std::cout << " -i "   << topicIn;
 	std::cout << " -o "   << topicOut;
+	std::cout << " -s "   << topicStatus;
 	std::cout << " -e "   << clips_file;
 	std::cout << " -w "   << flg_facts;
 	std::cout << " -r "   << flg_rules;
@@ -499,6 +517,7 @@ void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "    ./" << pname;
 	std::cout << "-i input_topic ";
 	std::cout << "-o output_topic ";
+	std::cout << "-s status_topic ";
 	std::cout << "-e clips_file ";
 	std::cout << "-w watch_facts ";
 	std::cout << "-r watch_rules ";

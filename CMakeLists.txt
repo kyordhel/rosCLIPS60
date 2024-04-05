@@ -116,6 +116,9 @@ catkin_package(
 ## Build the CLIPS library libclips.so
 add_subdirectory(clips60)
 
+## Build the clipscontrol node
+add_subdirectory(clipscontrol)
+
 # add_definitions(-w) # disable all warnings
 # # ## Declare a C++ library
 # file(GLOB CLIPS_SRC

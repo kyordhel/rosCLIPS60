@@ -6,10 +6,7 @@
 !CMakeLists.txt
 !LICENSE
 !readme.MD
-!package.xml
-# And these subdirectories
-!clips60/
-!clipscontrol/
-!rosclips/
-!pyGUI/
-
+# And these filetypes
+!*.py
+# Even if they are in subdirectories
+!**/

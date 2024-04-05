@@ -205,7 +205,7 @@ class ControlGUI():
         }.get(self.logLevelVar.get(), None);
         if lvl is None:
             return
-        self._sendCommand(f'(bind ?*logLevel* " {lvl} ")')
+        self._sendCommand(f'(bind ?*logLevel* "{ lvl }")')
     #end def
 
 

@@ -43,7 +43,7 @@ NCursesWin::NCursesWin() :
 	init_pair(0x10+(int16_t)WatchStatus::Disabled, COLOR_BLACK,   COLOR_RED);
 	init_pair(0x10+(int16_t)WatchStatus::Unknown,   COLOR_CYAN,  COLOR_BLACK);
 
-	init_pair(0x20+(int16_t)CLIPSStatus::Online,   -1, COLOR_GREEN);
+	init_pair(0x20+(int16_t)CLIPSStatus::Online,   -1, COLOR_GREEN | 0x08);
 	init_pair(0x20+(int16_t)CLIPSStatus::Offline,  -1, COLOR_RED);
 	init_pair(0x20+(int16_t)CLIPSStatus::Unknown,  -1, -1);
 
@@ -52,8 +52,10 @@ NCursesWin::NCursesWin() :
 
 	int rows, cols;
 	getmaxyx(stdscr, rows, cols);
-	printmid("Rows: " + std::to_string(rows) + "\n");
-	printmid("Cols: " + std::to_string(cols) + "\n");
+	// printmid("Rows: " + std::to_string(rows) + "\n");
+	// printmid("Cols: " + std::to_string(cols) + "\n");
+	// printmid("COLORS: " + std::to_string(COLORS) + "\n");
+	// printmid("COLOR_PAIRS: " + std::to_string(COLOR_PAIRS) + "\n");
 }
 
 
@@ -320,15 +322,18 @@ void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
 	else lblOffset = 3;
 	// else lblWidth = 19;
 	int colWidth = 3 * cols / options.size();
-	for(auto&& tuple: options){
-		std::string key, label;
-		std::tie(key, label) = tuple;
+	for(auto&& hk: options){
+		std::string key = hk[0];
+		std::string label = hk[1];
 		wattron(bottom, A_REVERSE);
 		kpad = col ? 2 - key.length() : 0;
 		mvwprintw(bottom, row, colWidth*col+kpad, "%s", key.c_str() );
 		wattroff(bottom, A_REVERSE);
 		lpad = colWidth*col + lblOffset;
+
+		wcolor_set(bottom, hk.getColor(), NULL);
 		mvwprintw(bottom, row, lpad, "%s", label.substr(0, colWidth - lblOffset).c_str() );
+		wcolor_set(bottom, 0, NULL);
 		if(++row > 3){ row = 1; ++col; }
 	}
 }
@@ -342,6 +347,12 @@ void NCursesWin::publish(const std::string& s){
 
 
 void NCursesWin::resetBottomInput(const std::string& prompt){
+	static std::vector<hotkey> options = {
+		hotkey::None,
+		hotkey( "^C", "Cancel"),
+		hotkey( "^X", "Exit")
+	};
+
 	int rows, cols;
 
 	getmaxyx(stdscr, rows, cols);
@@ -354,10 +365,6 @@ void NCursesWin::resetBottomInput(const std::string& prompt){
 	// mvwprintw(bottom, 2, 0, "^C");
 	// mvwprintw(bottom, 2, 3, "Cancel" );
 
-	std::vector<hotkey> options;
-	options.push_back(hotkey( "", ""));
-	options.push_back(hotkey( "^C", "Cancel"));
-	options.push_back(hotkey( "^X", "Exit"));
 	printBottomOptions(options);
 
 	inputPrompt = prompt;
@@ -383,50 +390,52 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 
 void NCursesWin::resetBottomDefault(){
-	std::vector<hotkey> options;
-	options.push_back(hotkey( "^O", "Load File"));
-	options.push_back(hotkey( "^R", "Reset"));
-	options.push_back(hotkey( "^X", "Exit"));
+	static std::vector<hotkey> options = {
+		hotkey( "^O", "Load File"),
+		hotkey( "^R", "Reset"),
+		hotkey( "^X", "Exit"),
 
 	// options.push_back(hotkey( "F1", "Watch Functions"));
-	options.push_back(hotkey( "F1", "W. Functions"));
-	options.push_back(hotkey( "^L", "Log Level"));
-	options.push_back(hotkey( " C", "Enter Command"));
+		hotkey( "F1", "W. Functions"),
+		hotkey( "^L", "Log Level"),
+		hotkey( " C", "Enter Command"),
 
 	// options.push_back(hotkey( "F2", "Watch Globals"));
-	options.push_back(hotkey( "F2", "W. Globals"));
-	options.push_back(hotkey( " A", "Print Agenda"));
-	options.push_back(hotkey( "F5", "Run 1"));
+		hotkey( "F2", "W. Globals"),
+		hotkey( " A", "Print Agenda"),
+		hotkey( "F5", "Run 1", COLOR_BLUE | 0x08),
 
-	options.push_back(hotkey( "F3", "Watch Facts"));
-	options.push_back(hotkey( " F", "Print Facts"));
-	options.push_back(hotkey( "F6", "Run 0"));
+		hotkey( "F3", "Watch Facts"),
+		hotkey( " F", "Print Facts"),
+		hotkey( "F6", "Run 0", COLOR_BLUE | 0x08),
 
-	options.push_back(hotkey( "F4", "Watch Rules"));
-	options.push_back(hotkey( " R", "Print Rules"));
-	options.push_back(hotkey( "F7", "Run n"));
+		hotkey( "F4", "Watch Rules"),
+		hotkey( " R", "Print Rules"),
+		hotkey( "F7", "Run n", COLOR_BLUE | 0x08)
+	};
 
 	updateBottom(" Quick Menu ", options);
 }
 
 
 void NCursesWin::resetBottomLogLevel(){
-	std::vector<hotkey> options;
-	options.push_back(hotkey( "^C", "Cancel"));
-	options.push_back(hotkey( "", ""));
-	options.push_back(hotkey( "", ""));
+	static std::vector<hotkey> options = {
+		hotkey( "^C", "Cancel"),
+		hotkey::None,
+		hotkey::None,
 
-	options.push_back(hotkey( "1", "Error"));
-	options.push_back(hotkey( "E", "Error"));
-	options.push_back(hotkey( "", ""));
+		hotkey( "1", "Error"),
+		hotkey( "E", "Error"),
+		hotkey::None,
 
-	options.push_back(hotkey( "2", "Warning"));
-	options.push_back(hotkey( "W", "Warning"));
-	options.push_back(hotkey( "", ""));
+		hotkey( "2", "Warning"),
+		hotkey( "W", "Warning"),
+		hotkey::None,
 
-	options.push_back(hotkey( "3", "Info"));
-	options.push_back(hotkey( "I", "Info"));
-	options.push_back(hotkey( "", ""));
+		hotkey( "3", "Info"),
+		hotkey( "I", "Info"),
+		hotkey::None
+	};
 
 	updateBottom("Set log level", options);
 }
@@ -545,14 +554,14 @@ void NCursesWin::updateTopR(){
 	int lpad = width - headingR.length();
 
 	short color = 0x20 + (short)clipsStatus;
-	wattron(top, COLOR_PAIR(color) | A_BOLD | A_REVERSE);
+	wattron(top, COLOR_PAIR(color) | A_REVERSE);
 	// wcolor_set(top, color, NULL);
 	mvwprintw(top, 0, cols - cols/3, "%*s%s",
 		lpad, "",
 		headingR.c_str()
 	);
 	// wcolor_set(top, 0, NULL);
-	wattroff(top, COLOR_PAIR(color) | A_BOLD | A_REVERSE);
+	wattroff(top, COLOR_PAIR(color) | A_REVERSE);
 }
 
 

@@ -8,10 +8,10 @@
 #include <functional>
 #include <ncurses.h>
 #include "namespace.h"
+#include "hotkey.h"
 
 BEGIN_NAMESPACE
 
-typedef std::tuple<std::string, std::string> hotkey;
 typedef std::function<void(const std::string& s)> pubfunc;
 
 class NCursesWin{

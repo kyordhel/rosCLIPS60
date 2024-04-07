@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
   PUBLIC
   ${CURSES_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
   # ${PROJECT_SOURCE_DIR}/include/
   # ${PROJECT_SOURCE_DIR}/include/clips
 )

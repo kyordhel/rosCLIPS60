@@ -90,7 +90,7 @@ private:
 	void sendPrintAgenda();
 	void sendPrintFacts();
 	void sendPrintRules();
-	void sendRun(uint32_t n);
+	void sendRun(int n);
 	void sendReset();
 	void sendWatchFunc();
 	void sendWatchGlob();

@@ -664,7 +664,7 @@ void NCursesWin::sendPrintRules(){
 }
 
 
-void NCursesWin::sendRun(uint32_t n){
+void NCursesWin::sendRun(int n){
 	publish(cmdstrbase + "run " + std::to_string(n));
 }
 

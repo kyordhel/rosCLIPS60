@@ -139,7 +139,20 @@ void ClipsBridge::assertFact(std::string const& s) {
 }
 
 
+void ClipsBridge::clearCLIPS(){
+	Clear();
+	ROS_INFO("KDB cleared (clear)");
+}
+
+
+void ClipsBridge::resetCLIPS(){
+	Reset();
+	ROS_INFO("KDB reset (reset)");
+}
+
+
 void ClipsBridge::sendCommand(std::string const& s){
+	ROS_INFO("Executing command: %s", s.c_str());
 	clips::sendCommand(s);
 }
 
@@ -231,7 +244,8 @@ void ClipsBridge::handleCommand(const std::string& c){
 	splitCommand(c, cmd, arg);
 
 	// ROS_INFO("Received command %s", c.c_str());
-	if(cmd == "reset") { Reset(); }
+	if(cmd == "reset") { resetCLIPS(); }
+	else if(cmd == "clear") { clearCLIPS(); }
 	else if(cmd == "raw")   { clips::sendCommand(arg); }
 	else if(cmd == "print") { handlePrint(arg); }
 	else if(cmd == "watch") { handleWatch(arg); }

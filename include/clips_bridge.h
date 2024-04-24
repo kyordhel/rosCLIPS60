@@ -75,6 +75,8 @@ public:
 private:
 	void assertFact(std::string const& s);
 	void sendCommand(std::string const& s);
+	void clearCLIPS();
+	void resetCLIPS();
 	// std::string& eval(std::string const& s); // Unsupported in 6.0
 
 	void initCLIPS(int argc, char **argv);

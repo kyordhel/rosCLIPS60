@@ -50,7 +50,7 @@ bool isValidClipsString(std::string const& str){
 			stack.pop();
 		}
 	}
-	return stack.empty() && (str[i] == ')');
+	return stack.empty();
 }
 
 

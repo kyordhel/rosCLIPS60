@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rosclips60</name>
+  <name>rosclips</name>
   <version>0.1.0</version>
   <description>The clips_ros package</description>
 

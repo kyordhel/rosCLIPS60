@@ -17,7 +17,7 @@ void ctrlc_handler(int signum) {}
 ** ** ****************************************************************/
 NCursesWin::NCursesWin() :
 	exit(false), top(NULL), mid(NULL), bottom(NULL),
-	headingC("CLIPS Control"), headingR("rosclips60: OFF"),
+	headingC("CLIPS Control"), headingR("rosclips: OFF"),
 	watchFlags(-1),
 	currMod(KPMode::Default), inputAction(InputAction::None),
 	clipsStatus(CLIPSStatus::Offline)
@@ -451,7 +451,7 @@ void NCursesWin::setWatchFlags(int flags){
 void NCursesWin::setCLIPSStatus(const CLIPSStatus& status){
 	if(status == clipsStatus) return;
 	clipsStatus = status;
-	headingR = "rosclips60: ";
+	headingR = "rosclips: ";
 	if(status == CLIPSStatus::Online){
 		print(headingR + "Online\n");
 		headingR+= "ON";

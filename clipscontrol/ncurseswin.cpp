@@ -341,7 +341,7 @@ void NCursesWin::printBottomOptions(const std::vector<hotkey>& options){
 
 void NCursesWin::publish(const std::string& s){
 	if(s.length() < 1) return;
-	printmid("Published: " + (s[0] == 0 ? s.substr(1) : s) + "\n");
+	// printmid("Published: " + (s[0] == 0 ? s.substr(1) : s) + "\n");
 	for(const auto& f: publishers) f(s);
 }
 

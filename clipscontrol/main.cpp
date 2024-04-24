@@ -54,7 +54,11 @@ int main(int argc, char** argv){
 
 void cloutSubsCallback(const std_msgs::String::ConstPtr& msg,
 	                   const std::string& topic, NCursesWin* ncw){
-	ncw->print("["+topic+"]: " + msg->data);
+	// ncw->print("["+topic+"]: " + msg->data);
+	if(msg->data.back() != '\n')
+		ncw->print(msg->data);
+	else
+		ncw->print(msg->data+'\n');
 }
 
 

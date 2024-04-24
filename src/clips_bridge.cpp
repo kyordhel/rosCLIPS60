@@ -95,11 +95,11 @@ void ClipsBridge::initCLIPS(int argc, char **argv){
 	RerouteStdin(argc, argv);
 	std::cout << "Clips ready" << std::endl;
 
-	// Load clp files specified in dat file
-	loadDat(clips_file);
-	Reset();
+	// Load clp files specified in file
+	loadFile(clips_file);
+	// Reset();
 
-	clips::printFacts();
+	// clips::printFacts();
 }
 
 

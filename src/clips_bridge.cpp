@@ -230,7 +230,7 @@ void ClipsBridge::handleCommand(const std::string& c){
 	std::string cmd, arg;
 	splitCommand(c, cmd, arg);
 
-	ROS_INFO("Received command %s", c.c_str());
+	// ROS_INFO("Received command %s", c.c_str());
 	if(cmd == "reset") { Reset(); }
 	else if(cmd == "raw")   { clips::sendCommand(arg); }
 	else if(cmd == "print") { handlePrint(arg); }
@@ -434,10 +434,10 @@ void ClipsBridge::run(){
 * *** *******************************************************/
 void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic) {
 	if(msg->data.length() < 1) return;
-	if(msg->data[0] != 0)
-		ROS_INFO("[%s]: [%s]", topic.c_str(), msg->data.c_str());
-	else
-		ROS_INFO("[%s] (%lu bytes):", topic.c_str(), msg->data.length());
+	// if(msg->data[0] != 0)
+		// ROS_INFO("[%s]: [%s]", topic.c_str(), msg->data.c_str());
+	// else
+		// ROS_INFO("[%s] (%lu bytes):", topic.c_str(), msg->data.length());
 	if (topic == topicIn){
 		queue.produce( msg->data );
 	}

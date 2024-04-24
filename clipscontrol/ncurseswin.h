@@ -83,6 +83,7 @@ private:
 	void handleInputBS();
 	void handleInputNL();
 
+	void sendClear();
 	void sendCommand(const std::string& cmd);
 	void sendLoad(const std::string& file);
 	void sendLogLvl(uint8_t lvl);

@@ -173,28 +173,32 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 		case 'F': case 'f': sendPrintFacts();  break;
 		case 'R': case 'r': sendPrintRules();  break;
 
-		case KEY_F(1): sendWatchFunc();  break;
-		case KEY_F(2): sendWatchGlob();  break;
-		case KEY_F(3): sendWatchFacts(); break;
-		case KEY_F(4): sendWatchRules(); break;
+		case KEY_F(1): case '1': sendWatchFunc();  break;
+		case KEY_F(2): case '2': sendWatchGlob();  break;
+		case KEY_F(3): case '3': sendWatchFacts(); break;
+		case KEY_F(4): case '4': sendWatchRules(); break;
 
-		case KEY_F(5): sendRun(1); break;
-		case KEY_F(6): sendRun(0); break;
- 		case KEY_F(7):
+		case KEY_F(5): case 'e': sendRun(1); break;
+		case KEY_F(6): case 'w': sendRun(-1); break;
+ 		case KEY_F(7): case 'n':
 			inputAction = InputAction::Run;
 			shiftToInputMode("Run: ", true);
 			break;
 
-		case ctrl('C'): case 'C': case 'c':
+		case 'C': case 'c':
 			inputAction = InputAction::RawCmd;
 			shiftToInputMode("Command: ");
+			break;
+
+		case ctrl('C'):
+			sendClear();
 			break;
 
 		case ctrl('R'):
 			sendReset();
 			break;
 
-		case ctrl('O'):
+		case 'L': case 'l':
 			inputAction = InputAction::Load;
 			shiftToInputMode("File to load: ");
 			break;
@@ -349,8 +353,8 @@ void NCursesWin::publish(const std::string& s){
 void NCursesWin::resetBottomInput(const std::string& prompt){
 	static std::vector<hotkey> options = {
 		hotkey::None,
-		hotkey( "^C", "Cancel"),
-		hotkey( "^X", "Exit")
+		hotkey( "^c", "Cancel"),
+		hotkey( "^x", "Exit")
 	};
 
 	int rows, cols;
@@ -391,27 +395,28 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 void NCursesWin::resetBottomDefault(){
 	static std::vector<hotkey> options = {
-		hotkey( "^O", "Load File"),
-		hotkey( "^R", "Reset"),
-		hotkey( "^X", "Exit"),
+		hotkey( "lL", "Load File"),
+		hotkey( "^r", "Reset"),
+		hotkey( "^x", "Exit"),
 
 	// options.push_back(hotkey( "F1", "Watch Functions"));
-		hotkey( "F1", "W. Functions"),
-		hotkey( "^L", "Log Level"),
-		hotkey( " C", "Enter Command"),
+		hotkey( " 1", "W. Functions"),
+		// hotkey( "^l", "Log Level"),
+		hotkey( "^c", "Clear"),
+		hotkey( "cC", "Enter Command"),
 
 	// options.push_back(hotkey( "F2", "Watch Globals"));
-		hotkey( "F2", "W. Globals"),
-		hotkey( " A", "Print Agenda"),
-		hotkey( "F5", "Run 1", COLOR_BLUE | 0x08),
+		hotkey( " 2", "W. Globals"),
+		hotkey( "aA", "Print Agenda"),
+		hotkey( "eE", "Run 1", COLOR_BLUE | 0x08),
 
-		hotkey( "F3", "Watch Facts"),
-		hotkey( " F", "Print Facts"),
-		hotkey( "F6", "Run 0", COLOR_BLUE | 0x08),
+		hotkey( " 3", "Watch Facts"),
+		hotkey( "fF", "Print Facts"),
+		hotkey( "wW", "Run All", COLOR_BLUE | 0x08),
 
-		hotkey( "F4", "Watch Rules"),
-		hotkey( " R", "Print Rules"),
-		hotkey( "F7", "Run n", COLOR_BLUE | 0x08)
+		hotkey( " 4", "Watch Rules"),
+		hotkey( "rR", "Print Rules"),
+		hotkey( "nN", "Run n", COLOR_BLUE | 0x08)
 	};
 
 	updateBottom(" Quick Menu ", options);
@@ -420,20 +425,20 @@ void NCursesWin::resetBottomDefault(){
 
 void NCursesWin::resetBottomLogLevel(){
 	static std::vector<hotkey> options = {
-		hotkey( "^C", "Cancel"),
+		hotkey( "^c", "Cancel"),
 		hotkey::None,
 		hotkey::None,
 
 		hotkey( "1", "Error"),
-		hotkey( "E", "Error"),
+		hotkey( "e", "Error"),
 		hotkey::None,
 
 		hotkey( "2", "Warning"),
-		hotkey( "W", "Warning"),
+		hotkey( "w", "Warning"),
 		hotkey::None,
 
 		hotkey( "3", "Info"),
-		hotkey( "I", "Info"),
+		hotkey( "i", "Info"),
 		hotkey::None
 	};
 
@@ -625,6 +630,11 @@ void NCursesWin::updateWatches(bool refresh){
 ** ** *****************************************************************/
 void NCursesWin::sendCommand(const std::string& cmd){
 	publish(cmdstrbase + "raw " + cmd);
+}
+
+
+void NCursesWin::sendClear(){
+	publish(cmdstrbase + "clear");
 }
 
 

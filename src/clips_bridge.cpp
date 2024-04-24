@@ -235,7 +235,7 @@ void ClipsBridge::handleCommand(const std::string& c){
 	else if(cmd == "raw")   { clips::sendCommand(arg); }
 	else if(cmd == "print") { handlePrint(arg); }
 	else if(cmd == "watch") { handleWatch(arg); }
-	else if(cmd == "load")  { loadFile(arg); Reset(); }
+	else if(cmd == "load")  { loadFile(arg); }
 	else if(cmd == "run")   { handleRun(arg); }
 	else if(cmd == "log")   { handleLog(arg); }
 	else return;

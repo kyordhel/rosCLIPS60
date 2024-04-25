@@ -28,11 +28,13 @@ std::string hotkey::getKey() const{
 	return key;
 }
 
-
 std::string hotkey::getLabel() const{
 	return label;
 }
 
+void hotkey::setLabel(const std::string& lbl){
+	label = std::string(lbl);
+}
 
 const short hotkey::getColor() const{
 	return ixColorPair;

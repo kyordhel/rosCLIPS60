@@ -17,6 +17,7 @@ public:
 public:
 	std::string getKey() const;
 	std::string getLabel() const;
+	void setLabel(const std::string& lbl);
 	const short getColor() const;
 	std::string operator[](const uint8_t& ix) const;
 

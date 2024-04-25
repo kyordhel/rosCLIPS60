@@ -18,7 +18,7 @@ void ctrlc_handler(int signum) {}
 NCursesWin::NCursesWin() :
 	exit(false), top(NULL), mid(NULL), bottom(NULL),
 	headingC("CLIPS Control"), headingR("rosclips: OFF"),
-	watchFlags(-1),
+	watchFlags(-1), runN(0),
 	currMod(KPMode::Default), inputAction(InputAction::None),
 	clipsStatus(CLIPSStatus::Offline)
 {
@@ -179,14 +179,16 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 		case KEY_F(4): case '4': sendWatchRules(); break;
 
 		case KEY_F(5): case 'e': sendRun(1); break;
-		case KEY_F(6): case 'w': sendRun(-1); break;
+		case KEY_F(6): case 'w': sendRun(runN); break;
  		case KEY_F(7): case 'n':
 			inputAction = InputAction::Run;
+			inputBuffer = std::to_string(runN);
 			shiftToInputMode("Run: ", true);
 			break;
 
 		case 'C': case 'c':
 			inputAction = InputAction::RawCmd;
+			inputBuffer = std::string(prevCmd);
 			shiftToInputMode("Command: ");
 			break;
 
@@ -200,6 +202,7 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 
 		case 'L': case 'l':
 			inputAction = InputAction::Load;
+			inputBuffer = std::string(prevLdFile);
 			shiftToInputMode("File to load: ");
 			break;
 
@@ -286,13 +289,16 @@ void NCursesWin::handleInputBS(){
 void NCursesWin::handleInputNL(){
 	switch(inputAction){
 		case InputAction::Load:
+			prevLdFile = inputBuffer;
 			sendLoad(inputBuffer);
 			break;
 		case InputAction::RawCmd:
+			prevCmd = inputBuffer;
 			sendCommand(inputBuffer);
 			break;
 		case InputAction::Run:
-			sendRun(std::stoi(inputBuffer));
+			runN = std::stoi(inputBuffer);
+			sendRun(runN);
 			break;
 	}
 	inputAction = InputAction::None;
@@ -394,6 +400,7 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 
 void NCursesWin::resetBottomDefault(){
+	std::string srn( (runN < 1) ? "All" : std::to_string(runN) );
 	static std::vector<hotkey> options = {
 		hotkey( "lL", "Load File"),
 		hotkey( "^r", "Reset"),
@@ -418,6 +425,7 @@ void NCursesWin::resetBottomDefault(){
 		hotkey( "rR", "Print Rules"),
 		hotkey( "nN", "Run n", COLOR_BLUE | 0x08)
 	};
+	options[11].setLabel("Run " + srn);
 
 	updateBottom(" Quick Menu ", options);
 }
@@ -479,7 +487,7 @@ void NCursesWin::shiftToDefaultMode(){
 void NCursesWin::shiftToInputMode(const std::string& prompt, bool numeric){
 	inputNumericOnly = numeric;
 	currMod = KPMode::Input;
-	inputBuffer.clear();
+	//inputBuffer.clear();
 	resetBottomInput(prompt);
 	curs_set(1);
 }
@@ -665,6 +673,7 @@ void NCursesWin::sendPrintRules(){
 
 
 void NCursesWin::sendRun(int n){
+	if(n <= 0) n = -1;
 	publish(cmdstrbase + "run " + std::to_string(n));
 }
 

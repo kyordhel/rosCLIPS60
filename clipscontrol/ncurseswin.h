@@ -117,6 +117,10 @@ private:
 	int watchFlags;
 	bool trimLines;
 	std::list<std::string> history;
+	std::string prevCmd;
+	std::string prevLdFile;
+	int runN;
+
 };
 
 END_NAMESPACE

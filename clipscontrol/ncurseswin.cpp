@@ -118,6 +118,10 @@ void NCursesWin::poll(){
 				handleKeyInput(c);
 				break;
 
+			case KPMode::TglWatches:
+				handleKeyTglWatches(c);
+				break;
+
 			default:
 				handleKeyDefault(c);
 				break;
@@ -178,9 +182,9 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 		case KEY_F(3): case '3': sendWatchFacts(); break;
 		case KEY_F(4): case '4': sendWatchRules(); break;
 
-		case KEY_F(5): case 'e': sendRun(1); break;
-		case KEY_F(6): case 'w': sendRun(runN); break;
- 		case KEY_F(7): case 'n':
+		case KEY_F(5): case 'E': case 'e': sendRun(1); break;
+		case KEY_F(6): case 'Q': case 'q': sendRun(runN); break;
+ 		case KEY_F(7): case 'N': case 'n':
 			inputAction = InputAction::Run;
 			inputBuffer = std::to_string(runN);
 			shiftToInputMode("Run: ", true);
@@ -190,6 +194,12 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 			inputAction = InputAction::RawCmd;
 			inputBuffer = std::string(prevCmd);
 			shiftToInputMode("Command: ");
+			break;
+
+		case 'S': case 's':
+			inputAction = InputAction::Assert;
+			inputBuffer = std::string(prevFact);
+			shiftToInputMode("Fact: ");
 			break;
 
 		case ctrl('C'):
@@ -208,6 +218,11 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 
 		case ctrl('L'):
 			shiftToLogLvlMode();
+			break;
+
+		case 'W': case 'w':
+			shiftToToggleWatchesMode();
+			break;
 
 		default:
 			// mvwprintw(mid, 24, 0, "Charcter pressed is = %3d Hopefully it can be printed as '%c'", c, c);
@@ -227,10 +242,12 @@ void NCursesWin::handleKeyInput(const uint32_t& c){
 		case ctrl('C'):
 			currMod = KPMode::Default;
 			curs_set(0);
+			savePreviousInput();
 			resetBottomDefault();
 			break;
 
 		case KEY_ENTER: case '\n': case '\r':
+			savePreviousInput();
 			handleInputNL();
 			break;
 
@@ -270,7 +287,31 @@ void NCursesWin::handleKeyLogLvl(const uint32_t& c){
 			sendLogLvl(3);
 			break;
 	}
+	currMod = KPMode::Default;
 	resetBottomDefault();
+}
+
+
+void NCursesWin::handleKeyTglWatches(const uint32_t& c){
+	switch(c){
+		case ctrl('C'):
+			currMod = KPMode::Default;
+			curs_set(0);
+			resetBottomDefault();
+			break;
+
+		case '1': sendWatchFunc();  break;
+		case '2': sendWatchGlob();  break;
+		case '3': sendWatchFacts(); break;
+		case '4': sendWatchRules(); break;
+
+		case 'A': case 'a':
+			sendWatchFunc();
+			sendWatchGlob();
+			sendWatchFacts();
+			sendWatchRules();
+			break;
+	}
 }
 
 
@@ -289,20 +330,38 @@ void NCursesWin::handleInputBS(){
 void NCursesWin::handleInputNL(){
 	switch(inputAction){
 		case InputAction::Load:
-			prevLdFile = inputBuffer;
 			sendLoad(inputBuffer);
 			break;
 		case InputAction::RawCmd:
-			prevCmd = inputBuffer;
 			sendCommand(inputBuffer);
 			break;
+		case InputAction::Assert:
+			sendAssert(inputBuffer);
+			break;
 		case InputAction::Run:
-			runN = std::stoi(inputBuffer);
-			sendRun(runN);
+			// sendRun(runN);
 			break;
 	}
 	inputAction = InputAction::None;
 	shiftToDefaultMode();
+}
+
+
+void NCursesWin::savePreviousInput(){
+	switch(inputAction){
+		case InputAction::Load:
+			prevLdFile = inputBuffer;
+			break;
+		case InputAction::RawCmd:
+			prevCmd = inputBuffer;
+			break;
+		case InputAction::Assert:
+			prevFact = inputBuffer;
+			break;
+		case InputAction::Run:
+			runN = std::stoi(inputBuffer);
+			break;
+	}
 }
 
 
@@ -400,32 +459,35 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 
 void NCursesWin::resetBottomDefault(){
-	std::string srn( (runN < 1) ? "All" : std::to_string(runN) );
+	std::string srn( (runN < 1) ? "all" : std::to_string(runN) );
+	srn.push_back(')');
 	static std::vector<hotkey> options = {
 		hotkey( "lL", "Load File"),
 		hotkey( "^r", "Reset"),
 		hotkey( "^x", "Exit"),
 
-	// options.push_back(hotkey( "F1", "Watch Functions"));
-		hotkey( " 1", "W. Functions"),
-		// hotkey( "^l", "Log Level"),
+	// Column 2
 		hotkey( "^c", "Clear"),
+		// hotkey( "^l", "Log Level"),
+		hotkey( "sS", "Assert fact"),
 		hotkey( "cC", "Enter Command"),
 
-	// options.push_back(hotkey( "F2", "Watch Globals"));
-		hotkey( " 2", "W. Globals"),
+	// Column 3
+		hotkey( " 3", "Watch Facts"),
 		hotkey( "aA", "Print Agenda"),
 		hotkey( "eE", "Run 1", COLOR_BLUE | 0x08),
 
-		hotkey( " 3", "Watch Facts"),
-		hotkey( "fF", "Print Facts"),
-		hotkey( "wW", "Run All", COLOR_BLUE | 0x08),
-
+	// Column 4
 		hotkey( " 4", "Watch Rules"),
+		hotkey( "fF", "Print Facts"),
+		hotkey( "qQ", "Run n", COLOR_BLUE | 0x08),
+
+	// Column 5
+		hotkey( "wW", "Watches"),
 		hotkey( "rR", "Print Rules"),
-		hotkey( "nN", "Run n", COLOR_BLUE | 0x08)
+		hotkey( "nN", "Set n", COLOR_BLUE | 0x08)
 	};
-	options[11].setLabel("Run " + srn);
+	options[11].setLabel("Run n (" + srn);
 
 	updateBottom(" Quick Menu ", options);
 }
@@ -451,6 +513,33 @@ void NCursesWin::resetBottomLogLevel(){
 	};
 
 	updateBottom("Set log level", options);
+}
+
+
+void NCursesWin::resetBottomTglWatches(){
+	static std::vector<hotkey> options = {
+		hotkey( "aA", "Toggle all"),
+		hotkey::None,
+		hotkey( "^c", "Cancel"),
+
+		hotkey( " 1", "Functions"),
+		hotkey::None,
+		hotkey::None,
+
+		hotkey( " 2", "Globals"),
+		hotkey::None,
+		hotkey::None,
+
+		hotkey( " 3", "Facts"),
+		hotkey::None,
+		hotkey::None,
+
+		hotkey( " 4", "Rules"),
+		hotkey::None,
+		hotkey::None
+	};
+
+	updateBottom("Toggle watches", options);
 }
 
 
@@ -497,6 +586,13 @@ void NCursesWin::shiftToLogLvlMode(){
 	currMod = KPMode::LogLvl;
 	curs_set(0);
 	resetBottomLogLevel();
+}
+
+
+void NCursesWin::shiftToToggleWatchesMode(){
+	currMod = KPMode::TglWatches;
+	curs_set(0);
+	resetBottomTglWatches();
 }
 
 
@@ -636,6 +732,11 @@ void NCursesWin::updateWatches(bool refresh){
 * ROS-related
 *
 ** ** *****************************************************************/
+void NCursesWin::sendAssert(const std::string& fact){
+	publish(cmdstrbase + "assert" + fact);
+}
+
+
 void NCursesWin::sendCommand(const std::string& cmd){
 	publish(cmdstrbase + "raw " + cmd);
 }

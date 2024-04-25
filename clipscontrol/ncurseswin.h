@@ -31,9 +31,10 @@ public:
 
 private:
 	enum class KPMode{
-		Default = 0,
-		Input   = 1,
-		LogLvl  = 2
+		Default    = 0,
+		Input      = 1,
+		LogLvl     = 2,
+		TglWatches = 3
 	};
 
 	enum class WatchStatus{
@@ -45,8 +46,9 @@ private:
 	enum class InputAction{
 		None    = 0,
 		Load    = 1,
-		RawCmd  = 2,
-		Run     = 3
+		Assert  = 2,
+		RawCmd  = 3,
+		Run     = 4
 	};
 
 public:
@@ -64,6 +66,7 @@ private:
 	void resetBottomDefault();
 	void resetBottomInput(const std::string& prompt);
 	void resetBottomLogLevel();
+	void resetBottomTglWatches();
 	void resize();
 	void updateTop();
 	void updateTopL();
@@ -77,12 +80,17 @@ private:
 	void handleKeyDefault(const uint32_t& c);
 	void handleKeyInput(const uint32_t& c);
 	void handleKeyLogLvl(const uint32_t& c);
+	void handleKeyTglWatches(const uint32_t& c);
 	void shiftToDefaultMode();
 	void shiftToInputMode(const std::string& prompt, bool numeric=false);
 	void shiftToLogLvlMode();
+	void shiftToToggleWatchesMode();
 	void handleInputBS();
 	void handleInputNL();
+	void savePreviousInput();
 
+
+	void sendAssert(const std::string& fact);
 	void sendClear();
 	void sendCommand(const std::string& cmd);
 	void sendLoad(const std::string& file);
@@ -118,6 +126,7 @@ private:
 	bool trimLines;
 	std::list<std::string> history;
 	std::string prevCmd;
+	std::string prevFact;
 	std::string prevLdFile;
 	int runN;
 

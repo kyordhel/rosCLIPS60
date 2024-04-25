@@ -244,7 +244,8 @@ void ClipsBridge::handleCommand(const std::string& c){
 	splitCommand(c, cmd, arg);
 
 	// ROS_INFO("Received command %s", c.c_str());
-	if(cmd == "reset") { resetCLIPS(); }
+	if(cmd == "assert") { clips::assertString(arg); }
+	else if(cmd == "reset") { resetCLIPS(); }
 	else if(cmd == "clear") { clearCLIPS(); }
 	else if(cmd == "raw")   { sendCommand(arg); }
 	else if(cmd == "print") { handlePrint(arg); }

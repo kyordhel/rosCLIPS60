@@ -9,7 +9,7 @@ file(GLOB CLIPSCONTROL_SRC
 )
 
 
-## Declare a C library
+## Declare an executable
 add_executable(${PROJECT_NAME}
   ${CLIPSCONTROL_SRC}
 )
@@ -18,15 +18,11 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
   ${CURSES_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
-  # ${PROJECT_SOURCE_DIR}/include/
-  # ${PROJECT_SOURCE_DIR}/include/clips
 )
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${CURSES_LIBRARIES}
-  # m
-  # pthread
 )
 
 # set_target_properties(clips60

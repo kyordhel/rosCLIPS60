@@ -173,14 +173,14 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 			exit = true;
 			return;
 
-		case 'A': case 'a': sendPrintAgenda(); break;
-		case 'F': case 'f': sendPrintFacts();  break;
-		case 'R': case 'r': sendPrintRules();  break;
+		case 'a': sendPrintAgenda(); break;
+		case 'f': sendPrintFacts();  break;
+		case 'r': sendPrintRules();  break;
 
-		case KEY_F(1): case '1': sendWatchFunc();  break;
-		case KEY_F(2): case '2': sendWatchGlob();  break;
-		case KEY_F(3): case '3': sendWatchFacts(); break;
-		case KEY_F(4): case '4': sendWatchRules(); break;
+		case KEY_F(1): case 'U': sendWatchFunc();  break;
+		case KEY_F(2): case 'G': sendWatchGlob();  break;
+		case KEY_F(3): case 'F': sendWatchFacts(); break;
+		case KEY_F(4): case 'R': sendWatchRules(); break;
 
 		case KEY_F(5): case 'E': case 'e': sendRun(1); break;
 		case KEY_F(6): case 'Q': case 'q': sendRun(runN); break;
@@ -473,17 +473,17 @@ void NCursesWin::resetBottomDefault(){
 		hotkey( " c", "Enter Command"),
 
 	// Column 3
-		hotkey( " 3", "Watch Facts"),
+		hotkey( " w", "Watches"),
 		hotkey( " a", "Print Agenda"),
 		hotkey( " e", "Run 1", COLOR_BLUE | 0x08),
 
 	// Column 4
-		hotkey( " 4", "Watch Rules"),
+		hotkey( " F", "Watch Facts"),
 		hotkey( " f", "Print Facts"),
 		hotkey( " q", "Run n", COLOR_BLUE | 0x08),
 
 	// Column 5
-		hotkey( " w", "Watches"),
+		hotkey( " R", "Watch Rules"),
 		hotkey( " r", "Print Rules"),
 		hotkey( " n", "Set Run n", COLOR_BLUE | 0x08)
 	};

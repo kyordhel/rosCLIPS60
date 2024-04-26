@@ -459,33 +459,33 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 
 void NCursesWin::resetBottomDefault(){
-	std::string srn( (runN < 1) ? "all" : std::to_string(runN) );
+	std::string srn( (runN < 1) ? "n=0: all" : std::to_string(runN) );
 	srn.push_back(')');
 	static std::vector<hotkey> options = {
-		hotkey( "lL", "Load File"),
+		hotkey( " l", "Load File"),
 		hotkey( "^r", "Reset"),
 		hotkey( "^x", "Exit"),
 
 	// Column 2
 		hotkey( "^c", "Clear"),
 		// hotkey( "^l", "Log Level"),
-		hotkey( "sS", "Assert fact"),
-		hotkey( "cC", "Enter Command"),
+		hotkey( " s", "Assert fact"),
+		hotkey( " c", "Enter Command"),
 
 	// Column 3
 		hotkey( " 3", "Watch Facts"),
-		hotkey( "aA", "Print Agenda"),
-		hotkey( "eE", "Run 1", COLOR_BLUE | 0x08),
+		hotkey( " a", "Print Agenda"),
+		hotkey( " e", "Run 1", COLOR_BLUE | 0x08),
 
 	// Column 4
 		hotkey( " 4", "Watch Rules"),
-		hotkey( "fF", "Print Facts"),
-		hotkey( "qQ", "Run n", COLOR_BLUE | 0x08),
+		hotkey( " f", "Print Facts"),
+		hotkey( " q", "Run n", COLOR_BLUE | 0x08),
 
 	// Column 5
-		hotkey( "wW", "Watches"),
-		hotkey( "rR", "Print Rules"),
-		hotkey( "nN", "Set n", COLOR_BLUE | 0x08)
+		hotkey( " w", "Watches"),
+		hotkey( " r", "Print Rules"),
+		hotkey( " n", "Set n", COLOR_BLUE | 0x08)
 	};
 	options[11].setLabel("Run n (" + srn);
 
@@ -518,7 +518,7 @@ void NCursesWin::resetBottomLogLevel(){
 
 void NCursesWin::resetBottomTglWatches(){
 	static std::vector<hotkey> options = {
-		hotkey( "aA", "Toggle all"),
+		hotkey( " a", "Toggle all"),
 		hotkey::None,
 		hotkey( "^c", "Cancel"),
 
@@ -733,7 +733,7 @@ void NCursesWin::updateWatches(bool refresh){
 *
 ** ** *****************************************************************/
 void NCursesWin::sendAssert(const std::string& fact){
-	publish(cmdstrbase + "assert" + fact);
+	publish(cmdstrbase + "(assert " + fact + ")");
 }
 
 

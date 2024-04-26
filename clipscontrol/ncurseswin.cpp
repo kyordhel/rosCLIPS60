@@ -459,8 +459,8 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 
 void NCursesWin::resetBottomDefault(){
-	std::string srn( (runN < 1) ? "n=0: all" : std::to_string(runN) );
-	srn.push_back(')');
+	std::string lblrunN( "Run " + std::to_string(runN) );
+	if(runN < 1) lblrunN+= " (all)";
 	static std::vector<hotkey> options = {
 		hotkey( " l", "Load File"),
 		hotkey( "^r", "Reset"),
@@ -485,9 +485,9 @@ void NCursesWin::resetBottomDefault(){
 	// Column 5
 		hotkey( " w", "Watches"),
 		hotkey( " r", "Print Rules"),
-		hotkey( " n", "Set n", COLOR_BLUE | 0x08)
+		hotkey( " n", "Set Run n", COLOR_BLUE | 0x08)
 	};
-	options[11].setLabel("Run n (" + srn);
+	options[11].setLabel(lblrunN);
 
 	updateBottom(" Quick Menu ", options);
 }

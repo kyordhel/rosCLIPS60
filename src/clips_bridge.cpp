@@ -97,6 +97,8 @@ void ClipsBridge::initCLIPS(int argc, char **argv){
 
 	// Load clp files specified in file
 	loadFile(clips_file);
+	if(flg_facts) clips::toggleWatch(clips::WatchItem::Facts);
+	if(flg_rules) clips::toggleWatch(clips::WatchItem::Rules);
 	// Reset();
 
 	// clips::printFacts();
@@ -470,40 +472,42 @@ void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std:
 *
 * *** *******************************************************/
 bool ClipsBridge::parseArgs(int argc, char **argv){
+	std::string pname(argv[0]);
+	pname = pname.substr(pname.find_last_of("/") + 1);
 	// Read input parameters
 	if (argc <= 1) {
-		printDefaultArgs(argv[0]);
+		printDefaultArgs(pname);
 		return true;
 	}
 
-	for(size_t i = 1; i < argc; ++i){
+	for(int i = 1; i < argc; ++i){
 		if (!strcmp(argv[i], "-h") || (i+1 >= argc) ){
-			printHelp( argv[0] );
+			printHelp( pname );
 			return false;
 		}
 		else if (!strcmp(argv[i],"-e")){
-			clips_file = std::string(argv[i+1]);
+			clips_file = std::string(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-w")){
-			flg_facts = atoi(argv[i+1]);
+			flg_facts = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-r")){
-			flg_rules = atoi(argv[i+1]);
+			flg_rules = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-t")){
-			flg_trace = atoi(argv[i+1]);
+			flg_trace = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-n")){
-			num = atoi(argv[i+1]);
+			num = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-i")){
-			topicIn = std::string(argv[i+1]);
+			topicIn = std::string(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-o")){
-			topicOut = std::string(argv[i+1]);
+			topicOut = std::string(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-s")){
-			topicStatus = std::string(argv[i+1]);
+			topicStatus = std::string(argv[++i]);
 		}
 	}
 	return true;
@@ -529,7 +533,7 @@ void ClipsBridge::printDefaultArgs(std::string const& pname){
 
 void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "Usage:" << std::endl;
-	std::cout << "    ./" << pname;
+	std::cout << "    " << pname << " ";
 	std::cout << "-i input_topic ";
 	std::cout << "-o output_topic ";
 	std::cout << "-s status_topic ";
@@ -540,7 +544,7 @@ void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "-t trace";
 	std::cout << std::endl << std::endl;
 	std::cout << "Example:" << std::endl;
-	std::cout << "    ./" << pname << " -e virbot.dat -w 1 -r 1 -num 20"  << std::endl;
+	std::cout << "    " << pname << " -e virbot.dat -w 1 -r 1 -num 20"  << std::endl;
 }
 
 

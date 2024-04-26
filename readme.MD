@@ -74,14 +74,12 @@ rosrun rosclips clipscontrol
 
 4. In terminal THREE start CLIPS
 ```
-rosrun rosclips rosclips
+rosrun rosclips rosclips -e cubes.dat -w 1 -r 1
 ```
 
 5. In terminal TWO (ClipsControl) do the following
-    1. Press numbers `1`, `2`, `3` and `4` to enable all watches.
-    2. Press `L`, type `cubes.clp` and then press Enter to load the example kdb.
-    3. Press `CTRL`+`R` to restart the engine and activate it.
-    4. Press `Q` to run.
+    1. Press `CTRL`+`R` to restart the engine and activate it.
+    2. Press `Q` to run.
 
 Things start to move now.
 If everything went right in ClipsControl you should see something like this:

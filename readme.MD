@@ -3,13 +3,19 @@ This repo provides a bridge for connecting CLIPS 6.00 (version of 05/12/93) with
 This CIPS solution is purely written in C and includes no patches, fixes, or anything.
 
 Why did I use this old version?
-Don't even dare to ask. I was required to because *bananas*. If you're looking for a newer versuion please do check [rosCLIPS64](https://github.com/kyordhel/rosCLIPS64).
+Don't even dare to ask. I was required to because *bananas*.
+If you're looking for a newer versuion please do check [rosCLIPS64](https://github.com/kyordhel/rosCLIPS64).
 
-Note: a *banana* is sufficient reason to do something, so imagine many.
+Note: one *banana* is necessary and sufficient reason to do something. Imagine many.
 
 # QuickStart
 
 This guide assumes that you have ROS already installed.
+
+## Step 0: Install dependencies
+```
+# apt install libncurses-dev
+```
 
 ## Step 1: Workspace setup and download
 1. Source ROS into your shell
@@ -40,17 +46,17 @@ catkin_make
 
 
 ## Step 2: Run and test
-We will be running 4 terminals for this quickstart:
+We will be running 3 terminals for this quickstart:
 - `roscore`
-- Clips
-- An output listener (`rostopic`)
-- An input trigger (`rostopic`)
-
-It is strongly advised that you keep Clips and the output listener visible.
+- rosCLIPS
+- ClipsControl (`rostopic` listener and publisher)
 
 
+It is strongly advised that you keep rosCLIPS and ClipsControl visible.
 
-1. In all FOUR separate terminals source ROS and the workspace with:
+
+
+1. In all THREE separate terminals source ROS and the workspace with:
 ```
 source /opt/ros/<distro>/setup.bash
 source devel/setup.bash
@@ -61,34 +67,33 @@ source devel/setup.bash
 roscore
 ```
 
-3. In terminal TWO start the output listener
+3. In terminal TWO start ClipsControl
 ```
-rostopic echo /planner
+rosrun rosclips clipscontrol
 ```
 
 4. In terminal THREE start CLIPS
 ```
-rosrun clips_ros clips_ros
+rosrun rosclips rosclips
 ```
 
-5. In terminal FOUR send the `(reset)` signal to CLIPS with the following command:
-```
-rostopic pub --once /clips_in std_msgs/String "(reset)"
-```
+5. In terminal TWO (ClipsControl) do the following
+    1. Press numbers `1`, `2`, `3` and `4` to enable all watches.
+    2. Press `L`, type `cubes.clp` and then press Enter to load the example kdb.
+    3. Press `CTRL`+`R` to restart the engine and activate it.
+    4. Press `Q` to run.
 
-Things will start to move. If everything went right in the listener (T2) you should see something like this:
+Things start to move now.
+If everything went right in ClipsControl you should see something like this:
 
 ```
-data: "move block D to the floor"
----
-data: "move block E to the floor"
----
-data: "move block A to the floor"
----
-data: "move block B to the floor"
----
-data: "move block F on top of blockC"
----
+rosclips: Online
+Clips alive
+move block D to the floor
+move block E to the floor
+move block A to the floor
+move block B to the floor
+move block F on top of blockC
 ```
 
 

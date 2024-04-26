@@ -733,7 +733,10 @@ void NCursesWin::updateWatches(bool refresh){
 *
 ** ** *****************************************************************/
 void NCursesWin::sendAssert(const std::string& fact){
-	publish(cmdstrbase + "(assert " + fact + ")");
+	if( (fact.front() == '(') && (fact.back() == ')') )
+		sendCommand("(assert " + fact + ")");
+	else
+		sendCommand("(assert (" + fact + "))");
 }
 
 

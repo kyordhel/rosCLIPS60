@@ -168,11 +168,12 @@ class ControlGUI():
 
 
     def setWatchFlags(self, flagStr:int):
-        self._setWatchFactButtonColor('green' if flagStr & 0x80 else 'red')
-        self._setWatchFuncButtonColor('green' if flagStr & 0x40 else 'red')
-        self._setWatchGlobButtonColor('green' if flagStr & 0x01 else 'red')
+        print(hex(flagStr), '&0xc3 = ', hex(flagStr & 0xc3))
+        self._setWatchFactButtonColor('green' if flagStr & 0x01 else 'red')
+        self._setWatchFuncButtonColor('green' if flagStr & 0x80 else 'red')
+        self._setWatchGlobButtonColor('green' if flagStr & 0x40 else 'red')
         self._setWatchRuleButtonColor('green' if flagStr & 0x02 else 'red')
-        self._setWatchAllButtonColor( 'green' if flagStr & 0xc3 else 'red')
+        self._setWatchAllButtonColor( 'green' if (flagStr & 0xc3) == 0xc3 else 'red')
     #end def
 
 

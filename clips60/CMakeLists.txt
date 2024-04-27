@@ -14,6 +14,11 @@ add_library(clips60
 
 target_include_directories(clips60
   PUBLIC
+  ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(clips60
+  PRIVATE
   ${PROJECT_SOURCE_DIR}/include/clips
 )
 

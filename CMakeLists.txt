@@ -102,7 +102,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS include
+ # INCLUDE_DIRS include
  # LIBRARIES clips
  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
@@ -115,6 +115,9 @@ catkin_package(
 
 ## Build the CLIPS library libclips.so
 add_subdirectory(clips60)
+
+## Build the main node
+add_subdirectory(rosclips)
 
 ## Build the clipscontrol node
 add_subdirectory(clipscontrol)
@@ -139,8 +142,6 @@ add_subdirectory(clipscontrol)
 # ## Specify additional locations of header files
 # ## Your package locations should be listed before other locations
 include_directories(
-  include
-  clips60/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -152,23 +153,19 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}
-  src/utils.cpp
-  src/clips_bridge.cpp
-  src/clipswrapper.cpp
-  src/dummy_func.cpp
-  src/main.cpp
-)
+# add_executable(${PROJECT_NAME}
+#   src/*.cpp
+# )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-set_target_properties(${PROJECT_NAME}
-  PROPERTIES
-    OUTPUT_NAME ${PROJECT_NAME}
-  PREFIX ""
-)
+# set_target_properties(${PROJECT_NAME}
+#   PROPERTIES
+#     OUTPUT_NAME ${PROJECT_NAME}
+#   PREFIX ""
+# )
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -178,12 +175,12 @@ set_target_properties(${PROJECT_NAME}
 # )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}
-  clips60
-  ${catkin_LIBRARIES}
-  m
-  pthread
-)
+# target_link_libraries(${PROJECT_NAME}
+#   clips60
+#   ${catkin_LIBRARIES}
+#   m
+#   pthread
+# )
 
 #############
 ## Install ##

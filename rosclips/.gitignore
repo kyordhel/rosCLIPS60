@@ -3,10 +3,11 @@
 # But these files
 !.gitignore
 !.gitattributes
+!CMakeLists.txt
+!readme.MD
 # And these filetypes
-!*.c
 !*.dat
 !*.clp
-!*.cpp
-# Even if they are in subdirectories
-!*/
+# And these directories
+!src/
+!include/

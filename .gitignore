@@ -10,5 +10,4 @@
 # And these subdirectories
 !clips60/
 !clipscontrol/
-!src/
-!include/
+!rosclips/

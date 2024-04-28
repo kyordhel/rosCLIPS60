@@ -4,11 +4,6 @@
 #include <fstream>
 #include <sstream>
 
-extern "C" {
-	#include "clips/clips.h"
-	// #include "user_functions.h"
-}
-
 #include "utils.h"
 #include "clipswrapper.h"
 // #include "dummy_func.h"
@@ -91,8 +86,8 @@ bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh, int delay){
 
 
 void ClipsBridge::initCLIPS(int argc, char **argv){
-	InitializeCLIPS();
-	RerouteStdin(argc, argv);
+	clips::initialize();
+	clips::rerouteStdin(argc, argv);
 	std::cout << "Clips ready" << std::endl;
 
 	// Load clp files specified in file
@@ -136,19 +131,19 @@ void ClipsBridge::initSubscribers(ros::NodeHandle& nh){
 void ClipsBridge::assertFact(std::string const& s) {
 	std::string as = "(network " + s + ")";
 	clips::assertString( "(network " + s + ")" );
-	SetFactListChanged(0);
+	clips::setFactListChanged(0);
 	ROS_INFO("Asserted string %s", as.c_str());
 }
 
 
 void ClipsBridge::clearCLIPS(){
-	Clear();
+	clips::clear();
 	ROS_INFO("KDB cleared (clear)");
 }
 
 
 void ClipsBridge::resetCLIPS(){
-	Reset();
+	clips::reset();
 	ROS_INFO("KDB reset (reset)");
 }
 
@@ -160,11 +155,8 @@ void ClipsBridge::sendCommand(std::string const& s){
 
 
 bool ClipsBridge::loadClp(const std::string& fpath){
-	char afpath[fpath.length()+1];
-	fpath.copy(afpath, fpath.length());
-	afpath[fpath.length()] = 0;
-	ROS_INFO("Loading file '%s'...", afpath );
-	int flag = Load( (char*) afpath );
+	ROS_INFO("Loading file '%s'...", fpath.c_str() );
+	int flag = clips::load( fpath );
 	if(flag <= 0){
 		ROS_ERROR("Error in file '%s' or does not exist", fpath.c_str());
 		return false;
@@ -274,7 +266,7 @@ void ClipsBridge::handlePrint(const std::string& arg){
 
 void ClipsBridge::handleRun(const std::string& arg){
 	int n = std::stoi(arg);
-	Run(n);
+	clips::run(n);
 }
 
 

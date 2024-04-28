@@ -53,10 +53,20 @@ void printAgenda(
 
 std::vector<std::string> getDefruleList(std::string const& module="");
 
-
-
-int load(std::string const& fpath);
+void initialize();
+void rerouteStdin(int argc, char** argv);
+void clear();
+void reset();
+int run(int maxRules = -1);
+bool load(std::string const& fpath);
 bool sendCommand(std::string const& s);
+void setFactListChanged(bool changed);
+
+double returnDouble(const int& argPos);
+int returnInt(const int& argPos);
+std::string returnLexeme(const int& argPos);
+int returnLong(const int& argPos);
+
 
 /**
  * Activates the tracing of the specified item(s)

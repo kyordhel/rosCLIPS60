@@ -32,11 +32,6 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 
-extern "C" {
-	#include "clips/clips.h"
-	// #include "user_functions.h"
-}
-
 #include "dummy_func.h"
 #include "clips_bridge.h"
 #include "clipswrapper.h"
@@ -59,7 +54,7 @@ inline int bridge_subscribe_invoker(ClipsBridge& br, std::string const& topic_na
 * C-compatible Prototypes
 * *** *******************************************************/
 extern "C" {
-	VOID UserFunctions();
+	void UserFunctions();
 	int CONDOR_send_data_client_network();
 	int CLIPS_rossub_wrapper();
 	int CLIPS_rospub_wrapper();
@@ -90,7 +85,7 @@ int main(int argc, char **argv){
 /* ** ********************************************************
 * Function definitions
 * *** *******************************************************/
-VOID UserFunctions(){
+void UserFunctions(){
 	// int DefineFunction(functionName, functionType, functionPointer, actualFunctionName);
 	// char *functionName, functionType, *actualFunctionName;
 	// int (*functionPointer)();
@@ -113,8 +108,8 @@ int CONDOR_send_data_client_network(){
 		return -1;
 
 	/* get the values for the 1st, 2rd arguments */
-	int c = RtnDouble(1);
-	char* message = RtnLexeme(2);
+	int c = clips::returnInt(1);
+	std::string message = clips::returnLexeme(2);
 
 	/* It sends the data */
 	send_message(bridge, message);
@@ -137,8 +132,8 @@ int CLIPS_rospub_wrapper(){
 		return -1;
 
 	/* Get the values for the 1st, 2rd arguments */
-	char* topic = RtnLexeme(1);
-	char* message = RtnLexeme(2);
+	std::string topic = clips::returnLexeme(1);
+	std::string message = clips::returnLexeme(2);
 
 	/* It sends the data */
 	return bridge_publish_invoker(bridge, topic, message);
@@ -162,8 +157,8 @@ int CLIPS_rossub_wrapper(){
 		return -1;
 
 	/* Get the values for the 1st, 2rd arguments */
-	char* topic = RtnLexeme(1);
-	char* fact_name = RtnLexeme(2);
+	std::string topic = clips::returnLexeme(1);
+	std::string fact_name = clips::returnLexeme(2);
 
 	/* It sends the data */
 	return bridge_subscribe_invoker(bridge, topic, fact_name);

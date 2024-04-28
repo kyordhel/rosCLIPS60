@@ -8,6 +8,7 @@ extern "C" {
 	#include "clips/commline.h"
 	#include "clips/prcdrfun.h"
 }
+
 namespace clips{
 std::map<WatchItem,std::string> watchItems = {
 	{WatchItem::Facts,            "facts"},
@@ -51,6 +52,52 @@ bool isValidClipsString(std::string const& str){
 		}
 	}
 	return stack.empty();
+}
+
+
+int run(int maxRules){
+	return Run(maxRules);
+}
+
+void initialize(){
+	InitializeCLIPS();
+}
+
+void rerouteStdin(int argc, char** argv){
+	RerouteStdin(argc, argv);
+}
+
+void clear(){
+	Clear();
+}
+
+void reset(){
+	Reset();
+}
+
+
+void setFactListChanged(const bool changed){
+	SetFactListChanged(changed);
+}
+
+int returnArgCount(){
+	return RtnArgCount();
+}
+
+double returnDouble(const int& argPos){
+	return RtnDouble(argPos);
+}
+
+int returnInt(const int& argPos){
+	return RtnLong(argPos);
+}
+
+std::string returnLexeme(const int& argPos){
+	return RtnLexeme(argPos);
+}
+
+int returnLong(const int& argPos){
+	return RtnLong(argPos);
 }
 
 
@@ -109,11 +156,11 @@ std::vector<std::string> getDefruleList(std::string const& module){
 }
 
 
-int load(std::string const& fpath){
+bool load(std::string const& fpath){
 	char afpath[fpath.length()+1];
 	fpath.copy(afpath, fpath.length());
 	afpath[fpath.length()] = 0;
-	return Load( afpath );
+	return !Load( afpath );
 }
 
 void sendCommandRaw(std::string const& s){

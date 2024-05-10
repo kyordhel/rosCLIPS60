@@ -40,7 +40,7 @@ NCursesWin::NCursesWin() :
 	use_default_colors();
 	init_pair(0x00, -1, -1);
 	init_pair(0x10+(int16_t)WatchStatus::Enabled,  COLOR_BLACK, COLOR_GREEN);
-	init_pair(0x10+(int16_t)WatchStatus::Disabled, COLOR_BLACK,   COLOR_RED);
+	init_pair(0x10+(int16_t)WatchStatus::Disabled, COLOR_WHITE,   COLOR_BLUE);
 	init_pair(0x10+(int16_t)WatchStatus::Unknown,   COLOR_CYAN,  COLOR_BLACK);
 
 	init_pair(0x20+(int16_t)CLIPSStatus::Online,   -1, COLOR_GREEN | 0x08);
@@ -175,15 +175,15 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 
 		case 'a': sendPrintAgenda(); break;
 		case 'f': sendPrintFacts();  break;
-		case 'r': sendPrintRules();  break;
+		case 'i': sendPrintRules();  break;
 
 		case KEY_F(1): case 'U': sendWatchFunc();  break;
 		case KEY_F(2): case 'G': sendWatchGlob();  break;
 		case KEY_F(3): case 'F': sendWatchFacts(); break;
-		case KEY_F(4): case 'R': sendWatchRules(); break;
+		case KEY_F(4): case 'I': sendWatchRules(); break;
 
-		case KEY_F(5): case 'E': case 'e': sendRun(1); break;
-		case KEY_F(6): case 'Q': case 'q': sendRun(runN); break;
+		case KEY_F(5): case 'R': case 'r': sendRun(1); break;
+		case KEY_F(6): case 'E': case 'e': sendRun(runN); break;
  		case KEY_F(7): case 'N': case 'n':
 			inputAction = InputAction::Run;
 			inputBuffer = std::to_string(runN);
@@ -220,7 +220,7 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 			shiftToLogLvlMode();
 			break;
 
-		case 'W': case 'w':
+		case 'T': case 't':
 			shiftToToggleWatchesMode();
 			break;
 
@@ -460,7 +460,7 @@ void NCursesWin::addPublisher(const pubfunc& f){
 
 void NCursesWin::resetBottomDefault(){
 	std::string lblrunN( "Run " + std::to_string(runN) );
-	if(runN < 1) lblrunN+= " (all)";
+	if(runN < 1) lblrunN+= " (n=0 all)";
 	static std::vector<hotkey> options = {
 		hotkey( " l", "Load File"),
 		hotkey( "^r", "Reset"),
@@ -473,18 +473,18 @@ void NCursesWin::resetBottomDefault(){
 		hotkey( " c", "Enter Command"),
 
 	// Column 3
-		hotkey( " w", "Watches"),
+		hotkey( " t", "Toggle watches"),
 		hotkey( " a", "Print Agenda"),
-		hotkey( " e", "Run 1", COLOR_BLUE | 0x08),
+		hotkey( " r", "Run 1", COLOR_BLUE | 0x08),
 
 	// Column 4
 		hotkey( " F", "Watch Facts"),
 		hotkey( " f", "Print Facts"),
-		hotkey( " q", "Run n", COLOR_BLUE | 0x08),
+		hotkey( " e", "Run n", COLOR_BLUE | 0x08),
 
 	// Column 5
-		hotkey( " R", "Watch Rules"),
-		hotkey( " r", "Print Rules"),
+		hotkey( " I", "Watch Rules"),
+		hotkey( " i", "Print Rules"),
 		hotkey( " n", "Set Run n", COLOR_BLUE | 0x08)
 	};
 	options[11].setLabel(lblrunN);

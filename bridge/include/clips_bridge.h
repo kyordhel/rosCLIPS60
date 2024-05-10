@@ -1,6 +1,7 @@
 #ifndef __CLIPS_BRIDGE_H__
 #define __CLIPS_BRIDGE_H__
 
+#pragma once
 
 #include <thread>
 #include <string>
@@ -13,7 +14,7 @@
 
 
 class ClipsBridge{
-private:
+protected:
 	// char buf[10];
 	// char dummy[30];
 	std::string clips_file;
@@ -47,8 +48,8 @@ public:
 
 	// Disable copy constructor and assignment op.
 private:
-	ClipsBridge(ClipsBridge const& obj);
-	ClipsBridge& operator=(ClipsBridge const&);
+	ClipsBridge(ClipsBridge const& obj)        = delete;
+	ClipsBridge& operator=(ClipsBridge const&) = delete;
 
 
 public:
@@ -72,7 +73,7 @@ public:
 	void stop();
 	void subscriberCallback(std_msgs::String::ConstPtr const& msg, std::string const& topic);
 
-private:
+protected:
 	void assertFact(std::string const& s);
 	void sendCommand(std::string const& s);
 	void clearCLIPS();

@@ -8,6 +8,7 @@
 !readme.MD
 !package.xml
 # And these subdirectories
+!bridge/
 !clips60/
 !clipscontrol/
 !rosclips/

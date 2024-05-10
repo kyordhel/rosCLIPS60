@@ -5,12 +5,6 @@
 !.gitattributes
 !CMakeLists.txt
 !readme.MD
-# And these filetypes
-!*.c
-!*.cpp
-!*.clp
-!*.dat
-!*.h
 # And these directories
 !src/
 !include/

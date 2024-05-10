@@ -13,13 +13,13 @@ add_library(clips60
 )
 
 target_include_directories(clips60
-  PUBLIC
-  ${PROJECT_SOURCE_DIR}/include
+  PRIVATE
+  ${PROJECT_SOURCE_DIR}/include/clips
 )
 
 target_include_directories(clips60
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}/include/clips
+  PUBLIC
+  ${PROJECT_SOURCE_DIR}/include
 )
 
 # set_target_properties(clips60

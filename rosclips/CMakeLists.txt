@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(rosclips)
 
 file(GLOB ROSCLIPS_SRC
-  ${PROJECT_SOURCE_DIR}/src/*.cpp
+  ${PROJECT_SOURCE_DIR}/*.cpp
 )
 
 ## Declare an executable
@@ -13,12 +13,14 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
   PUBLIC
   clips60/include
-  ${PROJECT_SOURCE_DIR}/include
+  bridge/include
+  ${PROJECT_SOURCE_DIR}/
   ${catkin_INCLUDE_DIRS}
 )
 
 target_link_libraries(${PROJECT_NAME}
   clips60
+  bridge
   ${catkin_LIBRARIES}
   m
   pthread

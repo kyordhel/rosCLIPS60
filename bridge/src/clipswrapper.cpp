@@ -157,11 +157,9 @@ std::vector<std::string> getDefruleList(std::string const& module){
 
 
 bool load(std::string const& fpath){
-	char afpath[fpath.length()+1];
-	fpath.copy(afpath, fpath.length());
-	afpath[fpath.length()] = 0;
-	return !Load( afpath );
+	return Load( clipsstr(fpath) ) > 0;
 }
+
 
 void sendCommandRaw(std::string const& s, bool verbose){
 	// Resets the pretty print save buffer.

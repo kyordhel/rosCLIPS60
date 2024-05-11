@@ -88,6 +88,7 @@ bool ClipsBridge::init(int argc, char **argv, ros::NodeHandle& nh, int delay){
 void ClipsBridge::initCLIPS(int argc, char **argv){
 	clips::initialize();
 	clips::rerouteStdin(argc, argv);
+	clips::clear();
 	std::cout << "Clips ready" << std::endl;
 
 	// Load clp files specified in file
@@ -513,7 +514,7 @@ void ClipsBridge::printDefaultArgs(std::string const& pname){
 	std::cout << " -i "   << topicIn;
 	std::cout << " -o "   << topicOut;
 	std::cout << " -s "   << topicStatus;
-	std::cout << " -e "   << clips_file;
+	std::cout << " -e "   << ( (clips_file.length() > 0) ? clips_file : "''");
 	std::cout << " -w "   << flg_facts;
 	std::cout << " -r "   << flg_rules;
 	std::cout << " -num " << num;

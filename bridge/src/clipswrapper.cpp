@@ -1,6 +1,6 @@
-#include "clipswrapper.h"
 #include <map>
 #include <stack>
+#include "clipswrapper.h"
 
 
 extern "C" {
@@ -8,6 +8,18 @@ extern "C" {
 	#include "clips/commline.h"
 	#include "clips/prcdrfun.h"
 }
+
+
+/* ** ***************************************************************
+*
+* Helpers
+*
+** ** **************************************************************/
+static inline
+char* clipsstr(const std::string& s){
+	return s.length() ? (char*)s.c_str() : NULL;
+}
+
 
 namespace clips{
 std::map<WatchItem,std::string> watchItems = {
@@ -26,15 +38,6 @@ std::map<WatchItem,std::string> watchItems = {
 	{WatchItem::GenericFunctions, "generic-functions"},
 	{WatchItem::Methods,          "methods"},
 };
-
-
-static inline
-char* toNullTermStr(std::string const& str){
-	char *nts = new char[str.length()+1];
-	str.copy(nts, str.length());
-	nts[str.length()] = 0;
-	return nts;
-}
 
 
 bool isValidClipsString(std::string const& str){
@@ -102,18 +105,14 @@ int returnLong(const int& argPos){
 
 
 void assertString(const std::string& s){
-	char* as = toNullTermStr(s);
-	AssertString( as );
-	delete as;
+	AssertString( clipsstr(s) );
 }
 
 
 void printAgenda(
 	const std::string& logicalName,
 	const std::string& module){
-	char* ptrLN = (char*) logicalName.c_str();
-	char* ptrModule = (module.length() > 0) ? (char*) module.c_str() : NULL;
-	Agenda(ptrLN, ptrModule);
+	Agenda( clipsstr(logicalName), clipsstr(module) );
 }
 
 
@@ -121,18 +120,14 @@ void printFacts(
 	const std::string& logicalName,
 	const std::string& module,
 	size_t start, size_t end, size_t max){
-	char* ptrLN = (char*) logicalName.c_str();
-	char* ptrModule = (module.length() > 0) ? (char*) module.c_str() : NULL;
-	Facts(ptrLN, ptrModule, start, end, max);
+	Facts( clipsstr(logicalName), clipsstr(module), start, end, max);
 }
 
 
 void printRules(
 	const std::string& logicalName,
 	const std::string& module){
-	char* ptrLN = (char*) logicalName.c_str();
-	char* ptrModule = (module.length() > 0) ? (char*) module.c_str() : NULL;
-	ListDefrules(ptrLN, ptrModule);
+	ListDefrules( clipsstr(logicalName), clipsstr(module) );
 }
 
 
@@ -164,17 +159,14 @@ bool load(std::string const& fpath){
 }
 
 void sendCommandRaw(std::string const& s){
-	char as[s.length()+1];
-	s.copy(as, s.length());
-	as[s.length()] = 0;
-
 	// Resets the pretty print save buffer.
 	FlushPPBuffer();
 	// Sets PPBufferStatus flag to boolean
 	// value of ON or OFF
 	SetPPBufferStatus(OFF);
 	// Processes a completed command
-	RouteCommand(as);
+	// RouteCommand(as, command, verbose); // CLIPS 6.24
+	RouteCommand( clipsstr(s) );
 	// Returns the EvaluationError flag
 	int res = GetEvaluationError();
 	// Resets the pretty print save buffer.
@@ -273,9 +265,7 @@ bool watching(const WatchItem& item){
 
 
 bool argCountCheck(const std::string& functionName, const ArgCountRestriction& restriction, int count){
-	char* fn = toNullTermStr(functionName);
-	bool result = ArgCountCheck(fn, (int)restriction, count);
-	delete fn;
+	bool result = ArgCountCheck(clipsstr(functionName), (int)restriction, count);
 	return result;
 }
 
@@ -285,20 +275,10 @@ bool defineFunction_impl(const std::string& functionName,
 	const std::string& actualFunctionName,
 	const std::string& restrictions
 ){
-	bool result;
-	char* fn = toNullTermStr(functionName);
-	char* afn = toNullTermStr(actualFunctionName);
-	char* ar = NULL;
-	if(restrictions.length()) ar = toNullTermStr(restrictions);
-
-	if(!restrictions.length()){
-		result = DefineFunction(fn, returnType, functionPointer, afn);
-		delete fn, afn;
-	}else{
-		result = DefineFunction2(fn, returnType, functionPointer, afn, ar);
-		delete fn, afn, ar;
-	}
-	return result;
+	if(restrictions.length())
+		return DefineFunction2(clipsstr(functionName), returnType, functionPointer,
+			clipsstr(actualFunctionName), clipsstr(restrictions));
+	return DefineFunction(clipsstr(functionName), returnType, functionPointer, clipsstr(actualFunctionName));
 }
 
-}
+} // end namespace

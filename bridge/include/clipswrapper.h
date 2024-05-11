@@ -39,7 +39,16 @@ enum class ArgCountRestriction : char{
 	NoMoreThan = 2,
 };
 
-void assertString(const std::string& s);
+
+/* ** ***************************************************************
+*
+* Basic interface functions
+*
+** ** **************************************************************/
+void initialize();
+void reset();
+bool load(std::string const& fpath);
+int run(int maxRules = -1);
 void printFacts(
 	const std::string& logicalName="stdout",
 	const std::string& module="",
@@ -50,24 +59,60 @@ void printRules(
 void printAgenda(
 	const std::string& logicalName="stdout",
 	const std::string& module="");
+// Watch
+// Unwatch
+void assertString(const std::string& s);
+// Retract
+// PrintCLIPS
+bool print(
+	const std::string& logicalName,
+	const std::string& str);
+// FindDefrule
+// Undefrule
+
+
+
 
 std::vector<std::string> getDefruleList(std::string const& module="");
 
-void initialize();
 void rerouteStdin(int argc, char** argv);
 void clear();
-void reset();
-int run(int maxRules = -1);
-bool load(std::string const& fpath);
-bool sendCommand(std::string const& s);
+bool sendCommand(std::string const& s, bool verbose=false);
 void setFactListChanged(bool changed);
 
+
+
+/* ** ***************************************************************
+*
+* DefineFunction-related
+*
+** ** **************************************************************/
+bool argCountCheck(
+	const std::string& functionName,
+	const ArgCountRestriction& restriction,
+	int count);
+
+bool defineFunction_impl(
+	const std::string& functionName,
+	const char& returnType,
+	int (*functionPointer)(),
+	const std::string& actualFunctionName,
+	const std::string& restrictions=""
+);
+
+int returnArgCount();
 double returnDouble(const int& argPos);
 int returnInt(const int& argPos);
 std::string returnLexeme(const int& argPos);
 int returnLong(const int& argPos);
 
 
+
+/* ** ***************************************************************
+*
+* Watch-related
+*
+** ** **************************************************************/
 /**
  * Activates the tracing of the specified item(s)
  * @param  item The item(s) to activate the watch on
@@ -113,21 +158,6 @@ WatchItem getWatches();
  *              true only if ALL items are being traced (watched).
  */
 bool watching(const WatchItem& item);
-
-
-bool argCountCheck(
-	const std::string& functionName,
-	const ArgCountRestriction& restriction,
-	int count);
-
-bool defineFunction_impl(
-	const std::string& functionName,
-	const char& returnType,
-	int (*functionPointer)(),
-	const std::string& actualFunctionName,
-	const std::string& restrictions=""
-);
-
 
 
 

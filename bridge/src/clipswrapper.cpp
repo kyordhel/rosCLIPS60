@@ -131,6 +131,11 @@ void printRules(
 }
 
 
+bool print(const std::string& ln, const std::string& str){
+	return PrintCLIPS( clipsstr(ln), clipsstr(str) );
+}
+
+
 std::vector<std::string> getDefruleList(std::string const& module){
 	DATA_OBJECT obj;
 	struct multifield* theList;
@@ -158,7 +163,7 @@ bool load(std::string const& fpath){
 	return !Load( afpath );
 }
 
-void sendCommandRaw(std::string const& s){
+void sendCommandRaw(std::string const& s, bool verbose){
 	// Resets the pretty print save buffer.
 	FlushPPBuffer();
 	// Sets PPBufferStatus flag to boolean
@@ -180,9 +185,9 @@ void sendCommandRaw(std::string const& s){
 	FlushBindList();
 }
 
-bool sendCommand(std::string const& s){
+bool sendCommand(std::string const& s, bool verbose){
 	if(!isValidClipsString(s)) return false;
-	sendCommandRaw(s);
+	sendCommandRaw(s, verbose);
 	return true;
 }
 

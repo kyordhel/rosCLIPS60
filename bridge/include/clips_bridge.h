@@ -80,10 +80,10 @@ protected:
 	void resetCLIPS();
 	// std::string& eval(std::string const& s); // Unsupported in 6.0
 
-	void initCLIPS(int argc, char **argv);
-	void initPublishers(ros::NodeHandle& nh);
-	void initServices(ros::NodeHandle& nh);
-	void initSubscribers(ros::NodeHandle& nh);
+	virtual void initCLIPS(int argc, char **argv);
+	virtual void initPublishers(ros::NodeHandle& nh);
+	virtual void initServices(ros::NodeHandle& nh);
+	virtual void initSubscribers(ros::NodeHandle& nh);
 	void parseMessage(const std::string& m);
 	void handleCommand(const std::string& c);
 	void handleLog(const std::string& arg);

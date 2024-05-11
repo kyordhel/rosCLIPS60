@@ -32,14 +32,14 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 
-#include "clips_bridge.h"
+#include "bridge.h"
 #include "clipswrapper.h"
 
 
 /* ** ********************************************************
 * Global variables
 * *** *******************************************************/
-ClipsBridge bridge;
+Bridge bridge;
 
 /* ** ********************************************************
 * Prototypes

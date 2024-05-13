@@ -1,8 +1,12 @@
 #ifndef __CLIPSWRAPPER_H__
 #define __CLIPSWRAPPER_H__
+#pragma once
+
 #include <cstdio>
 #include <string>
 #include <vector>
+
+#include "clipswrapperrouter.h"
 // #include <>
 //
 
@@ -15,6 +19,11 @@
 
 namespace clips{
 
+/* ** ***************************************************************
+*
+* Enumerations
+*
+** ** **************************************************************/
 enum class WatchItem : int{
 	Facts            = 0x0001,
 	Rules            = 0x0002,
@@ -167,13 +176,12 @@ inline constexpr WatchItem operator&(WatchItem x, WatchItem y) {
 }
 
 inline constexpr WatchItem operator|(WatchItem x, WatchItem y) {
-	return static_cast<WatchItem>(static_cast<int>(x) & static_cast<int>(y));
+	return static_cast<WatchItem>(static_cast<int>(x) | static_cast<int>(y));
 }
 
 inline constexpr WatchItem operator^(WatchItem x, WatchItem y) {
-	return static_cast<WatchItem>(static_cast<int>(x) & static_cast<int>(y));
+	return static_cast<WatchItem>(static_cast<int>(x) ^ static_cast<int>(y));
 }
-
 
 
 }

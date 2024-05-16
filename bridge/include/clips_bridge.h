@@ -15,18 +15,12 @@
 
 class ClipsBridge{
 protected:
-	// char buf[10];
-	// char dummy[30];
 	std::string clips_file;
-	// VOID *vTheModule;
-	// int show_facts;
+	std::string clppath;
 
 	bool flg_rules;
 	bool flg_facts;
-	bool flg_trace;
 
-	// int number;
-	int num;
 	bool running;
 
 	sync_queue<std::string> queue;

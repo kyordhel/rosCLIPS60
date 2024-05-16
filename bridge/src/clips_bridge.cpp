@@ -52,8 +52,7 @@ std::string get_current_path(){
 ClipsBridge::ClipsBridge():
 	// clips_file("cubes.dat"),
 	topicIn("clips_in"), topicOut("clips_out"), topicStatus("clips_status"),
-	flg_facts(false), flg_rules(false), flg_trace(false),
-	num(100), nodeHandle(NULL){
+	flg_facts(false), flg_rules(false), nodeHandle(NULL), clppath(get_current_path()){
 }
 
 ClipsBridge::~ClipsBridge(){
@@ -196,6 +195,7 @@ bool ClipsBridge::loadDat(const std::string& fpath){
 
 
 bool ClipsBridge::loadFile(std::string const& fpath){
+	ROS_INFO("Current path '%s'\n", get_current_path().c_str() );
 	if(ends_with(fpath, ".dat"))
 		return loadDat(fpath);
 	else if(ends_with(fpath, ".clp"))
@@ -393,6 +393,14 @@ bool ClipsBridge::parseArgs(int argc, char **argv){
 			printHelp( pname );
 			return false;
 		}
+		else if (!strcmp(argv[i],"-d")){
+			clppath = std::string(argv[++i]);
+
+			if(chdir(argv[i]) != 0){
+				fprintf(stderr, "Can't access {%s}: %s\n", argv[i], strerror(errno));
+				printf("Reset clppath  to {%s}\n", get_current_path().c_str() );
+			}
+		}
 		else if (!strcmp(argv[i],"-e")){
 			clips_file = std::string(argv[++i]);
 		}
@@ -401,12 +409,6 @@ bool ClipsBridge::parseArgs(int argc, char **argv){
 		}
 		else if (!strcmp(argv[i],"-r")){
 			flg_rules = atoi(argv[++i]);
-		}
-		else if (!strcmp(argv[i],"-t")){
-			flg_trace = atoi(argv[++i]);
-		}
-		else if (!strcmp(argv[i],"-n")){
-			num = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-i")){
 			topicIn = std::string(argv[++i]);
@@ -429,11 +431,10 @@ void ClipsBridge::printDefaultArgs(std::string const& pname){
 	std::cout << " -i "   << topicIn;
 	std::cout << " -o "   << topicOut;
 	std::cout << " -s "   << topicStatus;
+	std::cout << " -d "   << clppath;
 	std::cout << " -e "   << ( (clips_file.length() > 0) ? clips_file : "''");
 	std::cout << " -w "   << flg_facts;
 	std::cout << " -r "   << flg_rules;
-	std::cout << " -num " << num;
-	std::cout << " -t "   << flg_trace;
 	std::cout << std::endl << std::endl;
 }
 
@@ -445,13 +446,12 @@ void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "-i input_topic ";
 	std::cout << "-o output_topic ";
 	std::cout << "-s status_topic ";
+	std::cout << "-d clp base path (where clips files are)";
 	std::cout << "-e clips_file ";
 	std::cout << "-w watch_facts ";
 	std::cout << "-r watch_rules ";
-	std::cout << "-num num_rules ";
-	std::cout << "-t trace";
 	std::cout << std::endl << std::endl;
 	std::cout << "Example:" << std::endl;
-	std::cout << "    " << pname << " -e virbot.dat -w 1 -r 1 -num 20"  << std::endl;
+	std::cout << "    " << pname << " -e virbot.dat -w 1 -r 1"  << std::endl;
 }
 

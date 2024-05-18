@@ -199,6 +199,7 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 		case 'A': case 'a':
 			inputAction = InputAction::Assert;
 			inputBuffer = std::string(prevFact);
+			inputBuffer.clear();
 			shiftToInputMode("Fact: ");
 			break;
 
@@ -337,6 +338,7 @@ void NCursesWin::handleInputNL(){
 			break;
 		case InputAction::Assert:
 			sendAssert(inputBuffer);
+			printmid(inputBuffer + "\n");
 			break;
 		case InputAction::Run:
 			// sendRun(runN);

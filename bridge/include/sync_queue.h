@@ -1,11 +1,26 @@
+/* ** ***************************************************************
+* synq_queue.h
+*
+* Author: Mauricio Matamoros
+*
+* Implements a therad-safe syncrhonous queue under the
+* producer-consumer pattern
+*
+** ** **************************************************************/
 #ifndef __SYNC_QUEUE_H__
 #define __SYNC_QUEUE_H__
+#pragma once
 
 #include <queue>
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
 
+
+
+/**
+ * Implements a therad-safe syncrhonous queue of type T
+ */
 template <class T>
 class sync_queue
 {
@@ -27,11 +42,18 @@ private:
 
 // Disable copy constructor and assignment op.
 private:
-	sync_queue(sync_queue const& obj);
-	sync_queue& operator=(sync_queue const&);
+	sync_queue(sync_queue const& obj) = delete;
+	sync_queue& operator=(sync_queue const&) = delete;
 
 public:
+	/**
+	 * Creates a new instance of a thread-safe synchronous queue
+	 */
 	sync_queue(){}
+	/**
+	 * Default destructor
+	 * @remark Does nothing
+	 */
 	~sync_queue(){}
 
 	/**
@@ -51,7 +73,7 @@ public:
 	}
 
 	/**
-	 * Checks whether the queue is empty
+	 * Checks whether the queue is empty or not
 	 * @return true if the queue is empty, false otherwise
 	 */
 	virtual bool empty() {
@@ -88,7 +110,7 @@ public:
 	}
 
 	/**
-	 * Attempts to enqueues an element in the synchronous queue
+	 * Attempts to enqueue an element into the synchronous queue
 	 * @param obj      The element to enqueue
 	 * @param timeout  The amount of time to wait for the enqueue op to finish in milliseconds
 	 * @return         true if the element was successfully enqueued before the timeout. false otherwise.

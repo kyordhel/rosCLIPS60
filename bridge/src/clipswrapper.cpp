@@ -1,3 +1,12 @@
+/* ** ***************************************************************
+* clipswrapper.cpp
+*
+* Author: Mauricio Matamoros
+*
+* Wrapper for most used CLIPS functions required/used by the bridge
+*
+** ** **************************************************************/
+
 #include <map>
 #include <stack>
 #include "clipswrapper.h"
@@ -78,6 +87,9 @@ void reset(){
 	Reset();
 }
 
+bool getFactListChanged(){
+	return getFactListChanged();
+}
 
 void setFactListChanged(const bool changed){
 	SetFactListChanged(changed);
@@ -99,7 +111,7 @@ std::string returnLexeme(const int& argPos){
 	return RtnLexeme(argPos);
 }
 
-int returnLong(const int& argPos){
+long returnLong(const int& argPos){
 	return RtnLong(argPos);
 }
 
@@ -124,7 +136,7 @@ void printFacts(
 }
 
 
-void printRules(
+void printDefrules(
 	const std::string& logicalName,
 	const std::string& module){
 	ListDefrules( clipsstr(logicalName), clipsstr(module) );

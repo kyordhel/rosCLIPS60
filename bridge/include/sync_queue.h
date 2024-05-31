@@ -7,15 +7,21 @@
 * producer-consumer pattern
 *
 ** ** **************************************************************/
+/** @file sync_queue.h
+ * Implementation of the sync_queue class:
+ * a therad-safe syncrhonous queue
+ */
+
 #ifndef __SYNC_QUEUE_H__
 #define __SYNC_QUEUE_H__
 #pragma once
 
+/** @cond */
 #include <queue>
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
-
+/** @endcond */
 
 
 /**

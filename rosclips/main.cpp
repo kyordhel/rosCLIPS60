@@ -97,10 +97,6 @@ void UserFunctions(){
 }
 
 
-void send_message(ClipsBridge& br, std::string const& s){
-	br.publish(s);
-}
-
 /**
  * Publishes the given message (second paramenter) to the specified topic (first parameter).
  * The topic type must be std_msgs::String
@@ -121,8 +117,8 @@ int CLIPS_rospub_wrapper(){
 }
 
 inline
-int bridge_publish_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& message){
-	return br.publish(topic_name, message);
+int bridge_publish_invoker(ClipsBridge& br, std::string const& topicName, std::string const& message){
+	return br.publish(topicName, message);
 }
 
 /**
@@ -139,13 +135,13 @@ int CLIPS_rossub_wrapper(){
 
 	/* Get the values for the 1st, 2rd arguments */
 	std::string topic = clips::returnLexeme(1);
-	std::string fact_name = clips::returnLexeme(2);
+	std::string factName = clips::returnLexeme(2);
 
 	/* It sends the data */
-	return bridge_subscribe_invoker(bridge, topic, fact_name);
+	return bridge_subscribe_invoker(bridge, topic, factName);
 }
 
 inline
-int bridge_subscribe_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& fact_name){
-	return br.subscribe(topic_name, fact_name);
+int bridge_subscribe_invoker(ClipsBridge& br, std::string const& topicName, std::string const& factName){
+	return br.subscribe(topicName, factName);
 }

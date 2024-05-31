@@ -289,14 +289,14 @@ bool ClipsBridge::publish(std::string const& message){
 }
 
 
-bool ClipsBridge::publish(std::string const& topic_name, std::string const& message){
-	if (publishers.find(topic_name) == publishers.end()){
+bool ClipsBridge::publish(std::string const& topicName, std::string const& message){
+	if (publishers.find(topicName) == publishers.end()){
 		// Topic not in publishers. Insert.
-		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topic_name), 10);
-		publishers[topic_name] = pub;
-		ROS_INFO("Added publisher for topic %s", topic_name.c_str());
+		ros::Publisher pub = nodeHandle->advertise<std_msgs::String>( std::string(topicName), 10);
+		publishers[topicName] = pub;
+		ROS_INFO("Added publisher for topic %s", topicName.c_str());
 	}
-	ros::Publisher& pub = publishers[topic_name];
+	ros::Publisher& pub = publishers[topicName];
 	if (pub.getNumSubscribers() < 1) return false;
 	std_msgs::String msg;
 	msg.data = message;
@@ -312,16 +312,16 @@ bool ClipsBridge::publishStatus(){
 }
 
 
-bool ClipsBridge::subscribe(std::string const& topic_name, std::string const& fact_name){
-	if (subscribers.find(topic_name) == subscribers.end()){
+bool ClipsBridge::subscribe(std::string const& topicName, std::string const& factName){
+	if (subscribers.find(topicName) == subscribers.end()){
 		// Topic not in subscribers. Insert.
-		// ros::Subscriber sub = nodeHandle->subscribe(topic_name, 10, &ClipsBridge::subscriberCallback, this);
+		// ros::Subscriber sub = nodeHandle->subscribe(topicName, 10, &ClipsBridge::subscriberCallback, this);
 		ros::Subscriber sub = nodeHandle->subscribe<std_msgs::String>(topicIn, 100,
-			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
+			boost::bind(&ClipsBridge::subscriberCallback, this, _1, topicName)
 		);
-		ROS_INFO("Subscribed to topic %s", topic_name.c_str());
-		subscribers[topic_name] = sub;
-		topic_facts[topic_name] = fact_name;
+		ROS_INFO("Subscribed to topic %s", topicName.c_str());
+		subscribers[topicName] = sub;
+		topic_facts[topicName] = factName;
 	}
 	return true;
 }

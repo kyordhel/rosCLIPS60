@@ -6,11 +6,17 @@
 * Utility/miscellaneous/helper functions for the bridge
 *
 ** ** **************************************************************/
+/** @file utils.h
+ * Utility functions
+ */
+
 #ifndef __UTILS_H__
 #define __UTILS_H__
 #pragma once
 
+/** @cond */
 #include <string>
+/** @endcond */
 
 namespace utils{
 

@@ -25,29 +25,35 @@
 /*             FI-UNAM  Version 6.00  04/18/2023             */
 /*                                                           */
 /*************************************************************/
+/** @file main.cpp
+ * Anchor point (main function) for the clipscontrol node
+ */
 
+/** @cond */
 #include <cstdio>
 #include <string>
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+/** @endcond */
 
 #include "bridge.h"
 #include "clipswrapper.h"
 
-
 /* ** ********************************************************
 * Global variables
 * *** *******************************************************/
+/**
+ * The bridge to interface with CLIPS
+ */
 Bridge bridge;
 
 /* ** ********************************************************
 * Prototypes
 * *** *******************************************************/
 int main(int argc, char **argv);
-void send_message(ClipsBridge& br, std::string const& msg);
-inline int bridge_publish_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& message);
-inline int bridge_subscribe_invoker(ClipsBridge& br, std::string const& topic_name, std::string const& fact_name);
+inline int bridge_publish_invoker(ClipsBridge& br, std::string const& topicName, std::string const& message);
+inline int bridge_subscribe_invoker(ClipsBridge& br, std::string const& topicName, std::string const& factName);
 
 /* ** ********************************************************
 * C-compatible Prototypes
@@ -62,6 +68,12 @@ extern "C" {
 /* ** ********************************************************
 * Main (program anchor)
 * *** *******************************************************/
+/**
+ * Program anchor
+ * @param  argc The number of arguments to the program
+ * @param  argv The arguments passed to the program
+ * @return      The program exit code
+ */
 int main(int argc, char **argv){
 
 	ros::init(argc, argv, "talker");
@@ -83,6 +95,12 @@ int main(int argc, char **argv){
 /* ** ********************************************************
 * Function definitions
 * *** *******************************************************/
+
+/**
+ * Defines and sets up userfunctions to use within clips scripts
+ *
+ * @remark Function invoked by CLIPS to setup user functions
+ */
 void UserFunctions(){
 	// int clips::defineFunction(functionName, functionType, functionPointer, actualFunctionName);
 	// char *functionName, functionType, *actualFunctionName;

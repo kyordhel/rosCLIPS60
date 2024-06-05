@@ -1,3 +1,10 @@
+/* ** *****************************************************************
+* ncurseswin.cpp
+*
+* Author: Mauricio Matamoros
+*
+* ** *****************************************************************/
+
 #include "ncurseswin.h"
 #include <signal.h>
 #include <thread>

@@ -1,6 +1,17 @@
+/* ** *****************************************************************
+* ncurseswin.h
+*
+* Author: Mauricio Matamoros
+*
+* ** *****************************************************************/
+/** @file ncurseswin.h
+ * Definition of the NCursesWin class: the main window of the clipscontrol
+ */
+
 #ifndef __NCURSES_WIN_H__
 #define __NCURSES_WIN_H__
 
+/** @cond */
 #include <list>
 #include <tuple>
 #include <string>
@@ -8,21 +19,37 @@
 #include <functional>
 #include <ncurses.h>
 #include "namespace.h"
+/** @endcond */
 #include "hotkey.h"
 
 BEGIN_NAMESPACE
 
 typedef std::function<void(const std::string& s)> pubfunc;
 
+
+/**
+ * Implements the main window of the clipscontrol node using NCurses.
+ * Should be instantiated only once. Singleton is not implemented.
+ */
 class NCursesWin{
 public:
+	/**
+	 * Minimum number of columns the GUI accepts (used for calculations)
+	 */
 	static const int MINCOLS = 60;
 
 public:
+	/**
+	 * Initializes a new instance of NCursesWin
+	 */
 	NCursesWin();
 	~NCursesWin();
 
 public:
+	/**
+	 * Defines the status of the rosclips node as:
+	 * offline, online, and unknown
+	 */
 	enum class CLIPSStatus{
 		Offline = 0,
 		Online  = 1,
@@ -52,11 +79,45 @@ private:
 	};
 
 public:
+	/**
+	 * Runs the GUI main loop, blocking until it is closed either by
+	 * user's request or by a call to the exitPoll() method.
+	 */
 	void poll();
+
+	/**
+	 * Request termination of the GUI main loop.
+	 */
 	void exitPoll();
+
+	/**
+	 * Adds a publisher function to the list of registered publishers.
+	 * Commands and interactions will be issued to all registered
+	 * functions all the same.
+	 *
+	 * Publisher functions receive a string to be published using a
+	 * ros::Publisher or any other means of transmission
+	 * @remark  The function must be of type void(const std::string&).
+	 * @param f The function to register.
+	 */
 	void addPublisher(const pubfunc& f);
+
+	/**
+	 * Sets the Watch flags
+	 * @param flags [description]
+	 */
 	void setWatchFlags(int flags);
+
+	/**
+	 * Sets the status of the rosclips node
+	 * @param status The status of the rosclips node
+	 */
 	void setCLIPSStatus(const CLIPSStatus& status);
+
+	/**
+	 * Prints the provided string into the GUI main window
+	 * @param s The string to print
+	 */
 	void print(const std::string& s);
 	// void removePublisher(const pubfunc& f);
 

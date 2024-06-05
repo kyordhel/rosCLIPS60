@@ -1,3 +1,14 @@
+/* ** *****************************************************************
+* main.cpp
+*
+* Author: Mauricio Matamoros
+*
+* ** *****************************************************************/
+/** @file clipscontrol/main.cpp
+ * Anchor point (main function) for the clipscontrol node
+ */
+
+/** @cond */
 #include <regex>
 #include <thread>
 #include <iostream>
@@ -5,21 +16,56 @@
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+/** @endcond */
+
 
 using namespace clipscontrol;
 
+/* ** ********************************************************
+* Global variables
+* *** *******************************************************/
+
+/**
+ * A ros::Publisher object that publishes to the topic rosclips listens to
+ */
 ros::Publisher pub;
 
+/**
+ * The topic rosclips listens to
+ */
 std::string topicClipsIn     = "clips_in";
+
+/**
+ * The topic to read from rosclips (or any topic to listen to)
+ */
 std::string topicClipsOut    = "clips_out";
+
+/**
+ * The topic where rosclips reports its status
+ */
 std::string topicClipsStatus = "clips_status";
 
+
+
+/* ** ********************************************************
+* Prototypes
+* *** *******************************************************/
 void sendToCLIPS(const std::string& s);
 void asyncNcwTask(NCursesWin* ncw);
 void cloutSubsCallback(const std_msgs::String::ConstPtr& msg, const std::string& topic, NCursesWin* ncw);
 void clstatSubsCallback(const std_msgs::String::ConstPtr& msg, NCursesWin* ncw);
 void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub);
 
+
+/* ** ********************************************************
+* Main (program anchor)
+* *** *******************************************************/
+/**
+ * Program anchor
+ * @param  argc The number of arguments to the program
+ * @param  argv The arguments passed to the program
+ * @return      The program exit code
+ */
 int main(int argc, char** argv){
 
 	NCursesWin ncw; // Creates and initializes gui
@@ -38,7 +84,7 @@ int main(int argc, char** argv){
 		boost::bind(clstatSubsCallback, _1, &ncw) );
 
 
-	// boost::bind(&ClipsBridge::subscriberCallback, this, _1, topic_name)
+	// boost::bind(&ClipsBridge::subscriberCallback, this, _1, topicName)
 	pubfunc pf(sendToCLIPS);
 	ncw.addPublisher(pf);
 
@@ -52,6 +98,16 @@ int main(int argc, char** argv){
 }
 
 
+/* ** ********************************************************
+* Function definitions
+* *** *******************************************************/
+/**
+ * Callback for the rosclips clipsout topic subscription.
+ * It will print the message in the main window of the GUI.
+ * @param msg    The received message
+ * @param topic  The topic from where the message comes from
+ * @param ncw    The GUI main window to update
+ */
 void cloutSubsCallback(const std_msgs::String::ConstPtr& msg,
 	                   const std::string& topic, NCursesWin* ncw){
 	// ncw->print("["+topic+"]: " + msg->data);
@@ -62,6 +118,12 @@ void cloutSubsCallback(const std_msgs::String::ConstPtr& msg,
 }
 
 
+/**
+ * Callback for the rosclips status topic subscription.
+ * It will update the watch flags in the main window of the GUI
+ * @param msg The received message
+ * @param ncw The GUI main window to update
+ */
 void clstatSubsCallback(const std_msgs::String::ConstPtr& msg, NCursesWin* ncw){
 	static std::regex rxWatch("watching:(\\d+)");
 
@@ -75,6 +137,10 @@ void clstatSubsCallback(const std_msgs::String::ConstPtr& msg, NCursesWin* ncw){
 }
 
 
+/**
+ * Sends the given strng to rosclips
+ * @param s The string to send
+ */
 void sendToCLIPS(const std::string& s){
 	std_msgs::String msg;
 	msg.data = s;
@@ -82,6 +148,10 @@ void sendToCLIPS(const std::string& s){
 }
 
 
+/**
+ * Polls the GUI main window. Executed in a separated thread.
+ * @param ncw The GUI main window
+ */
 void asyncNcwTask(NCursesWin* ncw){
 	ncw->poll();
 	std::cout << "GUI terminated. Awaiting for ROS..." << std::endl;
@@ -90,6 +160,11 @@ void asyncNcwTask(NCursesWin* ncw){
 }
 
 
+/**
+ * Prdiodically checks whether rosclips is online
+ * @param ncw The GUI main window
+ * @param sub The ros::Subscriber object listening to the rosclips status topic
+ */
 void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub){
 	do{
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -97,5 +172,4 @@ void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub){
 			NCursesWin::CLIPSStatus::Online : NCursesWin::CLIPSStatus::Offline);
 	}
 	while( ros::ok() );
-
 }

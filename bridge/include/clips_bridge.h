@@ -82,6 +82,11 @@ protected:
 	 * Stores the name of the topic where the bridge status is published
 	 */
 	std::string topicStatus;
+	/**
+	 * Stores the name of the fact where messages received from the
+	 * default input topic (topicIn) are asserted.
+	 */
+	std::string defaultMsgInFact;
 
 	/**
 	 * Pointer to the nodeHandle of the ROS node.
@@ -192,9 +197,18 @@ protected:
 
 	/**
 	 * Asserts the input string as a fact as (assert (network s))
-	 * @param s The string to be asserted
+	 * @param s                    The string to be asserted
+	 * @param fact                 Optional. The fact under which \p s
+	 *                             will be asserted. When empty it
+	 *                             defaults to whatever defaultMsgInFact
+	 *                             is set. Default: an empty string.
+	 * @param resetFactListChanged Optional. When true
+	 *                             clips::setFactListChanged(0) is reset,
+	 *                             telling clips that no changes to the
+	 *                             facts list have been done.
+	 *                             Default: true
 	 */
-	void assertFact(std::string const& s);
+	void assertFact(const std::string& s, const std::string& fact = "", bool resetFactListChanged = true);
 
 	/**
 	 * Injects a command into CLIPS by calling clisp::sendCommand(s)

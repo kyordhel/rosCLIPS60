@@ -51,6 +51,7 @@ std::string get_current_path(){
 * *** *******************************************************/
 ClipsBridge::ClipsBridge():
 	// clipsFile("cubes.dat"),
+	defaultMsgInFact("network"),
 	topicIn("clips_in"), topicOut("clips_out"), topicStatus("clips_status"),
 	flgFacts(false), flgRules(false), nodeHandle(NULL), clppath(get_current_path()){
 }
@@ -127,10 +128,12 @@ void ClipsBridge::initSubscribers(ros::NodeHandle& nh){
 * Class methods: Clips wrappers
 *
 * *** *******************************************************/
-void ClipsBridge::assertFact(std::string const& s) {
-	std::string as = "(network " + s + ")";
-	clips::assertString( "(network " + s + ")" );
-	clips::setFactListChanged(0);
+void ClipsBridge::assertFact(const std::string& s, const std::string& fact, bool resetFactListChanged) {
+	std::string f = fact.empty() ? defaultMsgInFact : fact;
+	std::string as = "(" + fact + " " + s + ")";
+	clips::assertString( as );
+	if(resetFactListChanged)
+		clips::setFactListChanged(0);
 	ROS_INFO("Asserted string %s", as.c_str());
 }
 
@@ -367,9 +370,10 @@ void ClipsBridge::subscriberCallback(std_msgs::String::ConstPtr const& msg, std:
 	if(msg->data.length() < 1) return;
 	if (topic == topicIn){
 		queue.produce( msg->data );
+		return;
 	}
-	else if(msg->data[0] != 0)
-		clips::assertString( "(" + topic + " " + msg->data + ")" );
+	if(msg->data[0] == 0) return;
+	assertFact(msg->data, topicFacts[topic]);
 }
 
 

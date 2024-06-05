@@ -4,11 +4,13 @@
 !.gitignore
 !.gitattributes
 !CMakeLists.txt
+!Doxyfile
 !LICENSE
 !readme.MD
 !package.xml
 # And these subdirectories
 !bridge/
+!doc/
 !clips60/
 !clipscontrol/
 !rosclips/

@@ -50,9 +50,9 @@ std::string get_current_path(){
 * Constructor
 * *** *******************************************************/
 ClipsBridge::ClipsBridge():
-	// clips_file("cubes.dat"),
+	// clipsFile("cubes.dat"),
 	topicIn("clips_in"), topicOut("clips_out"), topicStatus("clips_status"),
-	flg_facts(false), flg_rules(false), nodeHandle(NULL), clppath(get_current_path()){
+	flgFacts(false), flgRules(false), nodeHandle(NULL), clppath(get_current_path()){
 }
 
 ClipsBridge::~ClipsBridge(){
@@ -90,9 +90,9 @@ void ClipsBridge::initCLIPS(int argc, char **argv){
 	std::cout << "Clips ready" << std::endl;
 
 	// Load clp files specified in file
-	loadFile(clips_file);
-	if(flg_facts) clips::toggleWatch(clips::WatchItem::Facts);
-	if(flg_rules) clips::toggleWatch(clips::WatchItem::Rules);
+	loadFile(clipsFile);
+	if(flgFacts) clips::toggleWatch(clips::WatchItem::Facts);
+	if(flgRules) clips::toggleWatch(clips::WatchItem::Rules);
 	// clips::reset();
 
 	// clips::printFacts();
@@ -321,7 +321,7 @@ bool ClipsBridge::subscribe(std::string const& topicName, std::string const& fac
 		);
 		ROS_INFO("Subscribed to topic %s", topicName.c_str());
 		subscribers[topicName] = sub;
-		topic_facts[topicName] = factName;
+		topicFacts[topicName] = factName;
 	}
 	return true;
 }
@@ -402,13 +402,13 @@ bool ClipsBridge::parseArgs(int argc, char **argv){
 			}
 		}
 		else if (!strcmp(argv[i],"-e")){
-			clips_file = std::string(argv[++i]);
+			clipsFile = std::string(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-w")){
-			flg_facts = atoi(argv[++i]);
+			flgFacts = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-r")){
-			flg_rules = atoi(argv[++i]);
+			flgRules = atoi(argv[++i]);
 		}
 		else if (!strcmp(argv[i],"-i")){
 			topicIn = std::string(argv[++i]);
@@ -432,9 +432,9 @@ void ClipsBridge::printDefaultArgs(std::string const& pname){
 	std::cout << " -o "   << topicOut;
 	std::cout << " -s "   << topicStatus;
 	std::cout << " -d "   << clppath;
-	std::cout << " -e "   << ( (clips_file.length() > 0) ? clips_file : "''");
-	std::cout << " -w "   << flg_facts;
-	std::cout << " -r "   << flg_rules;
+	std::cout << " -e "   << ( (clipsFile.length() > 0) ? clipsFile : "''");
+	std::cout << " -w "   << flgFacts;
+	std::cout << " -r "   << flgRules;
 	std::cout << std::endl << std::endl;
 }
 
@@ -447,7 +447,7 @@ void ClipsBridge::printHelp(std::string const& pname){
 	std::cout << "-o output_topic ";
 	std::cout << "-s status_topic ";
 	std::cout << "-d clp base path (where clips files are)";
-	std::cout << "-e clips_file ";
+	std::cout << "-e clipsFile ";
 	std::cout << "-w watch_facts ";
 	std::cout << "-r watch_rules ";
 	std::cout << std::endl << std::endl;

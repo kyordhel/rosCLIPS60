@@ -34,7 +34,7 @@ protected:
 	 * Stores the file that will be loaded into CLIPS during
 	 * initialization.
 	 */
-	std::string clips_file;
+	std::string clipsFile;
 
 	/**
 	 * Specifies the basepath where CLP files are located
@@ -44,12 +44,12 @@ protected:
 	/**
 	 * When true, activates defrule watching during initialization
 	 */
-	bool flg_rules;
+	bool flgRules;
 
 	/**
 	 * When true, activates fact watching during initialization
 	 */
-	bool flg_facts;
+	bool flgFacts;
 
 	/**
 	 * Internal flag that keeps the bridge running.
@@ -104,7 +104,7 @@ protected:
 	/**
 	 * Stores the names/tags of the fact asserted when a message arrives
 	 */
-	std::unordered_map<std::string, std::string> topic_facts;
+	std::unordered_map<std::string, std::string> topicFacts;
 
 public:
 	/**

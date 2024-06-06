@@ -125,6 +125,9 @@ add_subdirectory(rosclips)
 ## Build the clipscontrol node
 add_subdirectory(clipscontrol)
 
+## Build the test node
+add_subdirectory(testnode)
+
 # add_definitions(-w) # disable all warnings
 # # ## Declare a C++ library
 # file(GLOB CLIPS_SRC

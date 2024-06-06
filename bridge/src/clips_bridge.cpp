@@ -244,6 +244,7 @@ void ClipsBridge::handleCommand(const std::string& c){
 	else if(cmd == "reset") { resetCLIPS(); }
 	else if(cmd == "clear") { clearCLIPS(); }
 	else if(cmd == "raw")   { sendCommand(arg); }
+	else if(cmd == "path")  { handlePath(arg); }
 	else if(cmd == "print") { handlePrint(arg); }
 	else if(cmd == "watch") { handleWatch(arg); }
 	else if(cmd == "load")  { loadFile(arg); }
@@ -256,6 +257,15 @@ void ClipsBridge::handleCommand(const std::string& c){
 
 
 void ClipsBridge::handleLog(const std::string& arg){
+}
+
+
+void ClipsBridge::handlePath(const std::string& path){
+	if(chdir(path.c_str()) != 0){
+		ROS_ERROR("Can't access {%s}: %s\n", path.c_str(), strerror(errno));
+		printf("Reset clppath  to {%s}\n", clppath.c_str() );
+	}
+	clppath = path;
 }
 
 

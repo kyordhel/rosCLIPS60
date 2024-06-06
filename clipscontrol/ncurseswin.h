@@ -75,7 +75,8 @@ private:
 		Load    = 1,
 		Assert  = 2,
 		RawCmd  = 3,
-		Run     = 4
+		Run     = 4,
+		Path    = 5
 	};
 
 public:
@@ -127,6 +128,8 @@ private:
 	void resetBottomDefault();
 	void resetBottomInput(const std::string& prompt);
 	void resetBottomLogLevel();
+	void resetBottomMenu1();
+	void resetBottomMenu2();
 	void resetBottomTglWatches();
 	void resize();
 	void updateTop();
@@ -156,6 +159,7 @@ private:
 	void sendCommand(const std::string& cmd);
 	void sendLoad(const std::string& file);
 	void sendLogLvl(uint8_t lvl);
+	void sendPath(const std::string& path);
 	void sendPrintAgenda();
 	void sendPrintFacts();
 	void sendPrintRules();
@@ -189,8 +193,9 @@ private:
 	std::string prevCmd;
 	std::string prevFact;
 	std::string prevLdFile;
+	std::string prevPath;
 	int runN;
-
+	int quickMenuIndex;
 };
 
 END_NAMESPACE

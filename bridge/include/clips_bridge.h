@@ -304,6 +304,12 @@ private:
 	void handleLog(const std::string& arg);
 
 	/**
+	 * Handles path request commands received via topicIn
+	 * @param path The path where CLP files are
+	 */
+	void handlePath(const std::string& path);
+
+	/**
 	 * Handles print request commands received via topicIn
 	 * @param arg What to print. Accepted values are facts, rules
 	 *            and agenda.

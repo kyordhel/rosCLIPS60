@@ -506,7 +506,8 @@ void NCursesWin::resetBottomMenu1(){
 		hotkey( " c", "Enter Command"),
 
 	// Column 3
-		hotkey( " t", "Toggle watches"),
+		hotkey::None,
+		// hotkey( " q", "Query CLIPS"),
 		hotkey( " g", "Print Agenda"),
 		hotkey( " r", "Run 1", COLOR_BLUE | 0x08),
 
@@ -532,24 +533,25 @@ void NCursesWin::resetBottomMenu2(){
 		hotkey( "^x", "Exit"),
 
 	// Column 2
-		hotkey( " p", "Set clp path"),
 		hotkey::None,
-		hotkey::None,
+		// hotkey( " o", "Quick load"),
+		hotkey( "F1", "Watch Functions"),
+		hotkey( " t", "Toggle watches"),
 
 	// Column 3
-		hotkey::None,
-		hotkey::None,
-		hotkey( " r", "Run 1", COLOR_BLUE | 0x08),
+		hotkey( " p", "Set clp path"),
+		hotkey( "F2", "Watch Globals"),
+		hotkey( "F5", "Run 1", COLOR_BLUE | 0x08),
 
 	// Column 4
 		hotkey::None,
-		hotkey::None,
-		hotkey( " e", "Run n (n=0 all)", COLOR_BLUE | 0x08),
+		hotkey( "F3", "Watch Facts"),
+		hotkey( "F6", "Run n (n=0 all)", COLOR_BLUE | 0x08),
 
 	// Column 5
 		hotkey::None,
-		hotkey::None,
-		hotkey( " n", "Set Run n", COLOR_BLUE | 0x08)
+		hotkey( "F4", "Watch Rules"),
+		hotkey( "F7", "Set Run n", COLOR_BLUE | 0x08)
 	};
 
 	updateBottom(" Quick Menu 2/2 ", options);

@@ -13,7 +13,8 @@
 /* ** ********************************************************
 * Constructor
 * *** *******************************************************/
-Bridge::Bridge() : ClipsBridge(){}
+Bridge::Bridge() : ClipsBridge(),
+	serviceQuery("/clips/query"){}
 
 
 
@@ -28,6 +29,11 @@ void Bridge::initCLIPS(int argc, char **argv){
 	ClipsBridge::initCLIPS(argc, argv);
 
 	// Further CLIPS initialization (routers, etc).
+	clips::QueryRouter& qr = clips::QueryRouter::getInstance();
+	qr.addLogicalName("wdisplay"); // Capture display info
+	qr.addLogicalName("wtrace");   // Capture trace info
+	qr.addLogicalName("stdout");   // Capture everything else
+
 }
 
 
@@ -35,10 +41,10 @@ void Bridge::initServices(ros::NodeHandle& nh){
 	// Call parent class method
 	ClipsBridge::initServices(nh);
 
-	// ros::ServiceServer
-	// srv = nh.advertiseService("serviceName",
-	// 	&Bridge::serviceHandler, this);
-	// srvServers["serviceName"] = srv;
+	ros::ServiceServer
+	srv = nh.advertiseService(serviceQuery,
+		&Bridge::srvQueryKDB, this);
+	srvServers[serviceQuery] = srv;
 }
 
 
@@ -77,3 +83,8 @@ void Bridge::initSubscribers(ros::NodeHandle& nh){
 // void Bridge::subscriberHandler(const messageTypePtr& msg){
 // 	// Do something
 // }
+
+bool Bridge::srvQueryKDB(rosclips::QueryKDB::Request& req, rosclips::QueryKDB::Response& res){
+	clips::query(req.query, res.result);
+	return true;
+}

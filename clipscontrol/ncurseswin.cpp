@@ -215,6 +215,12 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 			shiftToInputMode("Fact: ");
 			break;
 
+		case 'Q': case 'q':
+			inputAction = InputAction::Query;
+			inputBuffer = std::string(prevQuery);
+			shiftToInputMode("Query: ");
+			break;
+
 		case ctrl('C'):
 			sendClear();
 			break;
@@ -357,6 +363,9 @@ void NCursesWin::handleInputNL(){
 		case InputAction::RawCmd:
 			sendCommand(inputBuffer);
 			break;
+		case InputAction::Query:
+			performQuery(inputBuffer);
+			break;
 		case InputAction::Assert:
 			sendAssert(inputBuffer);
 			printmid(inputBuffer + "\n");
@@ -377,6 +386,9 @@ void NCursesWin::savePreviousInput(){
 			break;
 		case InputAction::RawCmd:
 			prevCmd = inputBuffer;
+			break;
+		case InputAction::Query:
+			prevQuery = inputBuffer;
 			break;
 		case InputAction::Assert:
 			prevFact = inputBuffer;
@@ -484,6 +496,11 @@ void NCursesWin::addPublisher(const pubfunc& f){
 // }
 
 
+void NCursesWin::addQueryHandler(const queryfunc& f){
+	queryHandler = f;
+}
+
+
 void NCursesWin::resetBottomDefault(){
 	switch(quickMenuIndex){
 		case 1: resetBottomMenu1(); break;
@@ -506,8 +523,7 @@ void NCursesWin::resetBottomMenu1(){
 		hotkey( " c", "Enter Command"),
 
 	// Column 3
-		hotkey::None,
-		// hotkey( " q", "Query CLIPS"),
+		hotkey( " q", "Query CLIPS"),
 		hotkey( " g", "Print Agenda"),
 		hotkey( " r", "Run 1", COLOR_BLUE | 0x08),
 
@@ -874,6 +890,18 @@ void NCursesWin::sendWatchFacts(){
 
 void NCursesWin::sendWatchRules(){
 	publish(cmdstrbase + "watch rules");
+}
+
+void NCursesWin::performQuery(const std::string& query){
+	std::string result;
+	if(!queryHandler || !queryHandler(query, result)){
+		printmid("Query " + query + ": Failed!\n");
+		return;
+	}
+	printmid("Query: " + query + " BEGIN>>>\n");
+	printmid(result);
+	printmid("<<< END\n");
+
 }
 
 

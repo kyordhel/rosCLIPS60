@@ -20,6 +20,7 @@
 /** @endcond */
 
 #include "clips_bridge.h"
+#include "rosclips/QueryKDB.h"
 
 
 class ClipsBridge;
@@ -46,6 +47,14 @@ private:
 	 * Copy assignment operator disabled
 	 */
 	Bridge& operator=(Bridge const&) = delete;
+
+
+// Additional attributes
+private:
+	/**
+	 * The name of the service for querying clips
+	 */
+	std::string serviceQuery;
 
 
 // Overriden class members
@@ -86,6 +95,14 @@ protected:
 	 *           code short).
 	 */
 	virtual void initSubscribers(ros::NodeHandle& nh);
+
+	/**
+	 * Services a ROS query request
+	 * @param  req The request to be served
+	 * @param  res The response for the request
+	 * @return     true if the service was successfully served, false otherwise.
+	 */
+	bool srvQueryKDB(rosclips::QueryKDB::Request& req, rosclips::QueryKDB::Response& res);
 
 private:
 	// Additional class methods go here

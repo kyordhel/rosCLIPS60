@@ -7,19 +7,27 @@
 /** @file clipscontrol/main.cpp
  * Anchor point (main function) for the clipscontrol node
  */
+#ifndef ROSPACKAGE
+#error ROSPACKAGE is not defined
+#endif
 
 /** @cond */
 #include <regex>
 #include <thread>
 #include <iostream>
-#include "ncurseswin.h"
-
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+
+// The #include "package/QueryKDB.h" that contains the generated service hdr
+#include QUERYKDB_H
+
 /** @endcond */
+
+#include "ncurseswin.h"
 
 
 using namespace clipscontrol;
+using namespace ROSPACKAGE ;
 
 /* ** ********************************************************
 * Global variables
@@ -46,6 +54,17 @@ std::string topicClipsOut    = "clips_out";
 std::string topicClipsStatus = "clips_status";
 
 
+/**
+ * The name of the service for querying clips
+ */
+std::string serviceQuery     = "/clips/query";
+
+/**
+ * The service client used to perform queries
+ */
+ros::ServiceClient cliQueryCLIPS; // Requires nodehandle
+
+
 
 /* ** ********************************************************
 * Prototypes
@@ -55,8 +74,9 @@ void asyncNcwTask(NCursesWin* ncw);
 void cloutSubsCallback(const std_msgs::String::ConstPtr& msg, const std::string& topic, NCursesWin* ncw);
 void clstatSubsCallback(const std_msgs::String::ConstPtr& msg, NCursesWin* ncw);
 void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub);
+bool queryHandler(const std::string& query, std::string& result);
 
-
+NCursesWin *myncw;
 /* ** ********************************************************
 * Main (program anchor)
 * *** *******************************************************/
@@ -69,6 +89,7 @@ void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub);
 int main(int argc, char** argv){
 
 	NCursesWin ncw; // Creates and initializes gui
+	myncw = &ncw;
 	ros::init(argc, argv, "clipscontrol");
 
 	// Setup ROS
@@ -82,11 +103,15 @@ int main(int argc, char** argv){
 	// The topic to read status from
 	ros::Subscriber subcls = nh.subscribe<std_msgs::String>(topicClipsStatus, 1,
 		boost::bind(clstatSubsCallback, _1, &ncw) );
+	// The service client used to perform queries
+	cliQueryCLIPS = nh.serviceClient<QueryKDB>(serviceQuery);
 
 
 	// boost::bind(&ClipsBridge::subscriberCallback, this, _1, topicName)
 	pubfunc pf(sendToCLIPS);
 	ncw.addPublisher(pf);
+	queryfunc qf(queryHandler);
+	ncw.addQueryHandler(qf);
 
 	std::thread ncwThread = std::thread(asyncNcwTask, &ncw);
 	std::thread ccoThread = std::thread(asyncCheckClipsOnlineTask, &ncw, &subcls);
@@ -172,4 +197,15 @@ void asyncCheckClipsOnlineTask(NCursesWin* ncw, const ros::Subscriber* sub){
 			NCursesWin::CLIPSStatus::Online : NCursesWin::CLIPSStatus::Offline);
 	}
 	while( ros::ok() );
+}
+
+
+bool queryHandler(const std::string& query, std::string& result){
+	if(!ros::service::waitForService(serviceQuery, 500))
+		return false;
+	QueryKDB rpc;
+	rpc.request.query = query;
+	if (!cliQueryCLIPS.call(rpc)) return false;
+	result = rpc.response.result;
+	return true;
 }

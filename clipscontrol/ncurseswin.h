@@ -25,6 +25,7 @@
 BEGIN_NAMESPACE
 
 typedef std::function<void(const std::string& s)> pubfunc;
+typedef std::function<bool(const std::string& q, std::string& r)> queryfunc;
 
 
 /**
@@ -71,12 +72,13 @@ private:
 	};
 
 	enum class InputAction{
-		None    = 0,
-		Load    = 1,
-		Assert  = 2,
-		RawCmd  = 3,
-		Run     = 4,
-		Path    = 5
+		None,
+		Load,
+		Assert,
+		RawCmd,
+		Run,
+		Path,
+		Query,
 	};
 
 public:
@@ -102,6 +104,18 @@ public:
 	 * @param f The function to register.
 	 */
 	void addPublisher(const pubfunc& f);
+
+	/**
+	 * Adds a query handler function.
+	 * Queries will be issued to this function.
+	 *
+	 * Query functions receive a string to be injected-to/executed-by
+	 * CLIPS and return the output yield by it.
+	 * @remark  The function must be of type
+	 *          bool(const std::string&,std::string&).
+	 * @param f The function to register.
+	 */
+	void addQueryHandler(const queryfunc& f);
 
 	/**
 	 * Sets the Watch flags
@@ -169,6 +183,7 @@ private:
 	void sendWatchGlob();
 	void sendWatchFacts();
 	void sendWatchRules();
+	void performQuery(const std::string& s);
 	void publish(const std::string& s);
 
 private:
@@ -185,6 +200,7 @@ private:
 	std::string inputBuffer;
 	bool inputNumericOnly;
 	std::vector<pubfunc> publishers;
+	queryfunc queryHandler;
 	std::string cmdstrbase;
 	InputAction inputAction;
 	int watchFlags;
@@ -194,8 +210,10 @@ private:
 	std::string prevFact;
 	std::string prevLdFile;
 	std::string prevPath;
+	std::string prevQuery;
 	int runN;
 	int quickMenuIndex;
+
 };
 
 END_NAMESPACE

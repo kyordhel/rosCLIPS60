@@ -27,6 +27,8 @@
 #include "clipswrapperrouter.h"
 /** @endcond */
 
+#include "queryrouter.h"
+
 
 
 /** @cond */
@@ -332,13 +334,42 @@ void clear();
 
 
 /**
- * Injects a command into clips for it evaluation and execution
+ * Injects a command into clips for its evaluation and execution
  * @param  s       The string containing the CLIPS code to inject
  * @param  verbose Unsupported for CLIPS 6.0
  * @return         true if the stirng was successfully injected,
  *                 false otherwise
  */
 bool sendCommand(std::string const& s, bool verbose=false);
+
+
+/**
+ * Injects a command or \p query into clips for its evaluation and
+ * execution, capturing whatever output is produced by CLIPS
+ * in \p result
+ * @param  query  The query to inject to CLIPS.
+ * @param  result When this function returns, contains the output
+ *                yielded by CLIPS during the execution.
+ * @param  steps  When this function returns, contains the number
+ *                of steps executed when evaluating \p query.
+ * @return        True if the command was executed regardless of
+ *                the number of execution steps, false otherwise.
+ */
+bool query(const std::string& query, std::string& result);
+
+/**
+ * Injects a command or \p query into clips for its evaluation and
+ * execution, capturing whatever output is produced by CLIPS
+ * in \p result
+ * @param  query  The query to inject to CLIPS.
+ * @param  result When this function returns, contains the output
+ *                yielded by CLIPS during the execution.
+ * @param  steps  When this function returns, contains the number
+ *                of steps executed when evaluating \p query.
+ * @return        True if the command was executed regardless of
+ *                the number of execution steps, false otherwise.
+ */
+bool query(const std::string& query, std::string& result, int& steps);
 
 
 /**

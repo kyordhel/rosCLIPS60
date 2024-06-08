@@ -411,6 +411,7 @@ private:
 	 */
 	void printAgenda();
 
+
 	/**
 	 */
 	friend void send_message(ClipsBridge& br, std::string const& msg);

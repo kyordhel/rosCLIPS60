@@ -202,6 +202,23 @@ bool sendCommand(std::string const& s, bool verbose){
 }
 
 
+bool query(const std::string& query, std::string& result){
+	int steps;
+	return clips::query(query, result, steps) && steps > 0;
+}
+
+
+bool query(const std::string& query, std::string& result, int& steps){
+	static QueryRouter& qr = QueryRouter::getInstance();
+	qr.enable();
+	if( !clips::sendCommand(query, true) ) return false;
+	steps = clips::run();
+	result = qr.read();
+	qr.disable();
+	return true;
+}
+
+
 bool watch(const WatchItem& item){
 	bool result = true;
 	if((int)(item & WatchItem::All))

@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.0.2)
+set(PARENT_PROJECT_NAME "${PROJECT_NAME}")
 project(clipscontrol)
+
+if (PARENT_PROJECT_NAME)
+  add_compile_definitions(ROSPACKAGE=${PARENT_PROJECT_NAME})
+  add_compile_definitions(QUERYKDB_H="${PARENT_PROJECT_NAME}/QueryKDB.h")
+endif ()
+
 
 find_package(Curses REQUIRED)
 # add_definitions(-w) # disable all warnings

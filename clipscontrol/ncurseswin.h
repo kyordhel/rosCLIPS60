@@ -10,6 +10,7 @@
 
 #ifndef __NCURSES_WIN_H__
 #define __NCURSES_WIN_H__
+#pragma once
 
 /** @cond */
 #include <list>
@@ -17,8 +18,10 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <locale.h>
 #include <ncurses.h>
 #include "namespace.h"
+#include "ncursesdialogwin.h"
 /** @endcond */
 #include "hotkey.h"
 
@@ -62,7 +65,8 @@ private:
 		Default    = 0,
 		Input      = 1,
 		LogLvl     = 2,
-		TglWatches = 3
+		TglWatches = 3,
+		Dialog     = 4
 	};
 
 	enum class WatchStatus{
@@ -156,10 +160,12 @@ private:
 	void printmid(const std::string& str, const bool& log = true);
 	void printBottomOptions(const std::vector<hotkey>& options);
 	void handleKeyDefault(const uint32_t& c);
+	void handleKeyDialog(const uint32_t& c);
 	void handleKeyInput(const uint32_t& c);
 	void handleKeyLogLvl(const uint32_t& c);
 	void handleKeyTglWatches(const uint32_t& c);
 	void shiftToDefaultMode();
+	void shiftToDialogMode();
 	void shiftToInputMode(const std::string& prompt, bool numeric=false);
 	void shiftToLogLvlMode();
 	void shiftToToggleWatchesMode();
@@ -191,6 +197,7 @@ private:
 	WINDOW *top;
 	WINDOW *mid;
 	WINDOW *bottom;
+	NCursesDialogWin* dia;
 	KPMode currMod;
 	CLIPSStatus clipsStatus;
 	std::string headingL;

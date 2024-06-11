@@ -6,6 +6,7 @@
 * ** *****************************************************************/
 
 #include "ncurseswin.h"
+#include "ncfilepickermw.h"
 #include <signal.h>
 #include <thread>
 
@@ -23,7 +24,7 @@ void ctrlc_handler(int signum) {}
 *
 ** ** ****************************************************************/
 NCursesWin::NCursesWin() :
-	exit(false), top(NULL), mid(NULL), bottom(NULL),
+	exit(false), top(NULL), mid(NULL), bottom(NULL), dia(NULL),
 	headingC("CLIPS Control"), headingR("rosclips: OFF"),
 	watchFlags(-1), runN(0), quickMenuIndex(1),
 	currMod(KPMode::Default), inputAction(InputAction::None),
@@ -33,6 +34,7 @@ NCursesWin::NCursesWin() :
 	inputPrompt.reserve(25);
 	inputBuffer.reserve(255);
 	signal(SIGINT, ctrlc_handler);
+	setlocale(LC_ALL, "");
 	initscr();            // Start curses mode
 	start_color();
 	curs_set(0);
@@ -129,6 +131,10 @@ void NCursesWin::poll(){
 				handleKeyTglWatches(c);
 				break;
 
+			case KPMode::Dialog:
+				handleKeyDialog(c);
+				break;
+
 			default:
 				handleKeyDefault(c);
 				break;
@@ -169,12 +175,6 @@ void NCursesWin::resize(){
 
 
 void NCursesWin::handleKeyDefault(const uint32_t& c){
-	// if (c == 20){
-	// 	mvwprintw(mid, 24, 0, "Key pressed is (%3d) F12", c, c);
-	// 	wrefresh(mid);
-	// 	continue;
-	// }
-	// wrefresh(mid);
 	switch(c){
 		case ctrl('X'):
 			exit = true;
@@ -235,6 +235,11 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 			shiftToInputMode("File to load: ");
 			break;
 
+		case 'O': case 'o':
+			dia = new NCFilePickerMW(".", {".clp", ".dat"});
+			shiftToDialogMode();
+			break;
+
 		case 'P': case 'p':
 			inputAction = InputAction::Path;
 			inputBuffer = std::string(prevPath);
@@ -255,6 +260,31 @@ void NCursesWin::handleKeyDefault(const uint32_t& c){
 			break;
 	}
 
+}
+
+
+void NCursesWin::handleKeyDialog(const uint32_t& c){
+	if(!dia){
+		shiftToDefaultMode();
+		return;
+	}
+
+	switch(c){
+		case ctrl('X'):
+			exit = true;
+		case ctrl('C'):
+		case 27: // ESC key
+			dia->hide();
+			shiftToDefaultMode();
+			return;
+	}
+
+	dia->handleKey(c);
+	if( dia->getResult() != DialogResult::None ){
+		dia->hide();
+		sendLoad(dia->getUserInput());
+		shiftToDefaultMode();
+	}
 }
 
 
@@ -419,6 +449,7 @@ void NCursesWin::printmid(const std::string& str, const bool& log){
 		wprintw(mid, s.c_str() );
 	}
 	wrefresh(mid);
+	if(dia) dia->draw();
 }
 
 
@@ -549,8 +580,7 @@ void NCursesWin::resetBottomMenu2(){
 		hotkey( "^x", "Exit"),
 
 	// Column 2
-		hotkey::None,
-		// hotkey( " o", "Quick load"),
+		hotkey( " o", "Quick load"),
 		hotkey( "F1", "Watch Functions"),
 		hotkey( " t", "Toggle watches"),
 
@@ -648,9 +678,21 @@ void NCursesWin::setCLIPSStatus(const CLIPSStatus& status){
 
 
 void NCursesWin::shiftToDefaultMode(){
+	if( !dia->isVisible() ){
+		delete dia;
+		dia = NULL;
+		wrefresh(mid);
+	}
 	currMod = KPMode::Default;
 	curs_set(0);
 	resetBottomDefault();
+}
+
+
+void NCursesWin::shiftToDialogMode(){
+	if (!dia) return;
+	currMod = KPMode::Dialog;
+	dia->show();
 }
 
 

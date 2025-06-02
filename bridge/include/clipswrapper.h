@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "clipswrapperrouter.h"
 /** @endcond */
@@ -406,16 +407,31 @@ void setFactListChanged(bool changed);
 ** ** **************************************************************/
 
 /**
- * [argCountCheck description]
- * @param  functionName [description]
- * @param  restriction  [description]
- * @param  count        [description]
- * @return              [description]
+ * Returns a value indicating whether the number of arguments passed to
+ * the user function is as expected
+ * @param  functionName The name of the function to validate
+ * @param  restriction  A restriction on the number of aruments
+ *                      (less than, equals, greater than)
+ * @param  count        The comparison value for the restriction
+ * @return              true if the number of parameters matches the
+ *                      restriction; false otherwise.
  */
 bool argCountCheck(
 	const std::string& functionName,
 	const ArgCountRestriction& restriction,
 	int count);
+
+/**
+ * Returns a value indicating whether the number of arguments passed to
+ * the user function is within a given range
+ * @param  functionName The name of the function to validate
+ * @param  min          The minimum number of arguments
+ *                      (less than, equals, greater than)
+ * @param  max          The maximum number of arguments
+ * @return              true if the number of parameters is between the
+ *                      gfiven range; false otherwise.
+ */
+bool argRangeCheck(const std::string& functionName, uint16_t min, uint16_t max);
 
 /**
  * Implementation for the defineFunction macro (use macro instead).
@@ -447,6 +463,7 @@ bool defineFunction_impl(
  * @return The number of arguments passed to the user function.
  */
 int returnArgCount();
+
 
 /**
  * Returns a floating-point number from either an INTEGER or FLOAT

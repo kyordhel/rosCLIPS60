@@ -88,7 +88,7 @@ void reset(){
 }
 
 bool getFactListChanged(){
-	return getFactListChanged();
+	return GetFactListChanged();
 }
 
 void setFactListChanged(const bool changed){
@@ -183,7 +183,7 @@ void sendCommandRaw(std::string const& s, bool verbose){
 	// RouteCommand(as, command, verbose); // CLIPS 6.24
 	RouteCommand( clipsstr(s) );
 	// Returns the EvaluationError flag
-	int res = GetEvaluationError();
+	GetEvaluationError();
 	// Resets the pretty print save buffer.
 	FlushPPBuffer();
 	// Sets the HaltExecution flag
@@ -297,9 +297,13 @@ bool watching(const WatchItem& item){
 
 
 bool argCountCheck(const std::string& functionName, const ArgCountRestriction& restriction, int count){
-	bool result = ArgCountCheck(clipsstr(functionName), (int)restriction, count);
-	return result;
+	return ArgCountCheck(clipsstr(functionName), (int)restriction, count) != -1;
 }
+
+bool argRangeCheck(const std::string& functionName, uint16_t min, uint16_t max){
+	return ArgRangeCheck(clipsstr(functionName), min, max) != -1;
+}
+
 
 bool defineFunction_impl(const std::string& functionName,
 	const char& returnType,
